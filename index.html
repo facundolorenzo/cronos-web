@@ -468,6 +468,8 @@ body{background:#080a0b}
         <div class="kpi"><div class="kl">Listas</div><div class="kv" id="kpi-lista">—</div><div class="kd">para avanzar</div></div>
       </div>
       <div class="list" id="inclist"><div class="inc-empty" id="inc-empty">Cargando…</div></div>
+      <div class="phead" style="margin-top:30px"><div><h1 style="font-size:17px">La fábrica en vivo</h1><p>Lo que los agentes avisan mientras trabajan · se actualiza solo</p></div></div>
+      <div class="list" id="evlist"></div>
     </section>
 
     <!-- ===== PROYECTOS ===== -->
@@ -806,6 +808,18 @@ async function fetchIncs(){
  if(r.error){if(el)el.innerHTML='<div class="inc-empty">No se pudo leer la base:<br><b>'+_esc(r.error.message)+'</b><br><br><button class="mbtn-gh" onclick="cambiarCreds()">Cambiar claves</button></div>';return;}
  _incs=r.data||[];renderIncs();
 }
+/* --- CABLE: avisos en vivo de la fábrica (tabla eventos) --- */
+var _evTimer=null;
+function _evBadge(estado){var m={trabajando:['Trabajando',''],esperando_ok:['Te espera','esp'],aprobado:['Aprobado','go'],terminado:['Terminado','go'],error:['Problema','esp']};var b=m[estado]||[estado,''];return '<span class="ec '+b[1]+'">'+_esc(b[0])+'</span>';}
+function _evAgo(ts){var s=(Date.now()-new Date(ts).getTime())/1000;if(s<60)return 'recién';var m=Math.floor(s/60);if(m<60)return 'hace '+m+' min';var h=Math.floor(m/60);if(h<24)return 'hace '+h+' h';return 'hace '+Math.floor(h/24)+' días';}
+async function fetchEvs(){
+ if(!_supa)return;var el=document.getElementById('evlist');if(!el)return;
+ var r=await _supa.from('eventos').select('*').order('created_at',{ascending:false}).limit(12);
+ if(r.error){el.innerHTML='<div class="inc-empty">El cable todavía no está conectado (falta la tabla <b>eventos</b>). Corré <b>cable/eventos.sql</b> en Supabase y recargá.</div>';return;}
+ var evs=r.data||[];
+ if(!evs.length){el.innerHTML='<div class="inc-empty">Sin avisos todavía. Cuando un agente trabaje, lo ves acá.</div>';return;}
+ el.innerHTML=evs.map(function(e){return '<div class="card rowcard" style="cursor:default"><div class="rc-top"><div><div class="rc-nm">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="rc-sub">'+_evAgo(e.created_at)+'</div></div>'+_evBadge(e.estado)+'</div>'+(e.mensaje?'<div class="rc-say">'+_esc(e.mensaje)+'</div>':'')+'</div>';}).join('');
+}
 async function initInc(){
  var el=document.getElementById('inclist');if(!el)return;
  var c=_creds();
@@ -814,7 +828,9 @@ async function initInc(){
  try{_supa=window.supabase.createClient(c.url,c.anon);}catch(e){_supa=null;}
  if(!_supa){el.innerHTML=_setupHTML();return;}
  el.innerHTML='<div class="inc-empty" id="inc-empty">Conectando…</div>';
- fetchIncs();
+ fetchIncs();fetchEvs();
+ if(_evTimer)clearInterval(_evTimer);
+ _evTimer=setInterval(function(){fetchIncs();fetchEvs();},20000);
 }
 function openIncNew(){if(!_supa){initInc();return;}var d=document.getElementById('nf_done');if(d)d.innerHTML='';['nf_nombre','nf_idea','nf_cliente'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});nfTipo('propio');document.getElementById('incnew').classList.add('open');setTimeout(function(){var n=document.getElementById('nf_nombre');if(n)n.focus();},50);}
 function nfTipo(t){_nftipo=t;document.getElementById('nf_propio').classList.toggle('on',t==='propio');document.getElementById('nf_cliente_b').classList.toggle('on',t==='cliente');document.getElementById('nf_cli_wrap').style.display=t==='cliente'?'block':'none';}
