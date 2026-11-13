@@ -570,6 +570,11 @@ body{background:#080a0b}
     <div class="i-steps" id="i_steps"></div>
     <div class="msec"><div class="mt">La idea</div><div id="i_idea" style="font-size:12.5px;color:var(--mut);line-height:1.55;white-space:pre-wrap"></div></div>
     <div class="msec"><div class="mt">Dónde está</div><div id="i_nota" style="font-size:12.5px;color:var(--mut);line-height:1.55"></div></div>
+    <div class="msec"><div class="mt">El director · hablá desde acá</div>
+      <div id="i_chat" style="max-height:220px;overflow:auto;font-size:12.5px;line-height:1.55;display:flex;flex-direction:column;gap:8px;margin:8px 0"></div>
+      <textarea id="i_resp" placeholder="Respondele al director… (ej: A en todo, firmo las tres etapas)" style="width:100%;min-height:64px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--texto);font-size:12.5px;padding:10px;font-family:inherit"></textarea>
+      <div class="mbtns2" style="margin-top:8px"><button class="mbtn-gh" onclick="dirAprobar()">✅ Aprobar todo</button><button class="mbtn-pri" onclick="dirEnviar()">Enviar al director</button></div>
+    </div>
     <div class="mbtns2"><button class="mbtn-gh" onclick="incPrev()">← Atrás</button><button class="mbtn-pri" id="i_next" onclick="incNext()">Avanzar etapa →</button></div>
     <div style="text-align:center;margin-top:12px"><button class="lnk-del" onclick="incBorrar()">Borrar idea</button></div>
   </div>
@@ -902,8 +907,31 @@ async function initInc(){
  el.innerHTML='<div class="inc-empty" id="inc-empty">Conectando…</div>';
  fetchIncs();fetchEvs();
  if(_evTimer)clearInterval(_evTimer);
- _evTimer=setInterval(function(){fetchIncs();fetchEvs();},20000);
+ _evTimer=setInterval(function(){fetchIncs();fetchEvs();if(_chatProy&&document.getElementById('incmodal').classList.contains('open'))cargarChat(_chatProy);},20000);
 }
+/* --- CHAT CON EL DIRECTOR (tabla mensajes; el lanzador en la compu hace el resto) --- */
+var _chatProy='';
+async function cargarChat(proy){
+ _chatProy=proy;var el=document.getElementById('i_chat');if(!el||!_supa)return;
+ var r=await _supa.from('mensajes').select('*').eq('proyecto',proy).order('created_at',{ascending:true}).limit(30);
+ if(r.error){el.innerHTML='<div style="color:var(--mut)">El chat necesita la tabla <b>mensajes</b> (SQL del lanzador).</div>';return;}
+ var ms=r.data||[];
+ if(!ms.length){el.innerHTML='<div style="color:var(--mut)">Sin mensajes todavía. Cuando el director te escriba, aparece acá.</div>';return;}
+ el.innerHTML=ms.map(function(m){
+  var mio=m.rol==='facu';
+  var pend=mio&&m.estado==='pendiente'?' · <i>esperando al director…</i>':'';
+  return '<div style="align-self:'+(mio?'flex-end':'flex-start')+';max-width:92%;padding:9px 12px;border-radius:12px;background:'+(mio?'rgba(53,210,154,.12)':'rgba(255,255,255,.05)')+';white-space:pre-wrap">'+(mio?'':'<b style="color:var(--esmb);font-size:11px">DIRECTOR</b><br>')+_esc(m.texto)+pend+'</div>';
+ }).join('');
+ el.scrollTop=el.scrollHeight;
+}
+async function dirEnviar(){
+ var t=document.getElementById('i_resp');var txt=(t.value||'').trim();
+ if(!txt||!_supa||!_chatProy)return;
+ var r=await _supa.from('mensajes').insert({proyecto:_chatProy,rol:'facu',texto:txt,estado:'pendiente'});
+ if(r.error){alert('No se pudo enviar: '+r.error.message);return;}
+ t.value='';cargarChat(_chatProy);
+}
+function dirAprobar(){document.getElementById('i_resp').value='Apruebo todo con tus recomendaciones. Firmá, anotá las fechas y seguí.';dirEnviar();}
 /* --- SUBPANTALLA DE ETAPA: entrega + pantallas + editor simple --- */
 var ET_ARCHIVOS={MATEO:['validacion-mateo.md','mateo-entrega.md'],HAROLD:['harold-entrega.md'],BRIAN:['brian-entrega.md'],MARCA:['marca-entrega.md'],MAYA:['maya-entrega.md','ux-entrega.md'],JUN:['jun-entrega.md','ui-entrega.md']};
 function _disBase(proy){var c=_creds();return c.url+'/storage/v1/object/public/diseno/'+proy.toLowerCase();}
@@ -1032,6 +1060,7 @@ function openIncDB(id){var x=_incs.find(function(i){return String(i.id)===String
  _set('i_nota',(x.nota||'')+' · etapa actual: '+ETAPAS[et]);
  document.getElementById('i_next').style.display=et>=4?'none':'inline-flex';
  document.getElementById('incmodal').classList.add('open');
+ cargarChat(x.nombre);
 }
 async function _mover(delta){var x=_incs.find(function(i){return String(i.id)===String(_curId);});if(!x||!_supa)return;var et=Math.max(0,Math.min(4,(x.etapa||0)+delta));if(et===(x.etapa||0))return;
  x.etapa=et;x.nota=(delta>0?'Avanzó a ':'Volvió a ')+ETAPAS[et];openIncDB(_curId);
