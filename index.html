@@ -612,9 +612,9 @@ body{background:#080a0b}
 <div class="modal" id="etmodal" onclick="if(event.target===this)closeModal('etmodal')">
   <div class="modal-card" style="max-width:860px;width:min(92vw,860px);resize:both;overflow:auto;min-width:320px;min-height:300px">
     <button class="mclose" onclick="closeModal('etmodal')">✕</button>
-    <div class="mhead"><div><div class="mn" id="et_name"></div><div class="mr" id="et_sub"></div></div></div>
+    <div class="mhead"><div><div class="mn" id="et_name"></div><div class="mr" id="et_sub"></div></div><button class="mbtn-gh" id="et_voz" onclick="etLeer()" style="padding:8px 14px;font-size:12px;flex:none">🔊 Leémelo</button></div>
     <div id="et_pant" style="display:none;margin:10px 0"><div class="mt">Pantallas · tocá una para verla y editarla</div><div id="et_pantlist" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div></div>
-    <div class="msec"><div class="mt">La entrega</div><div id="et_body" style="font-size:12.5px;color:var(--mut);line-height:1.6;max-height:58vh;overflow:auto;white-space:pre-wrap"></div></div>
+    <div class="msec"><div class="mt">La entrega</div><div id="et_body" style="font-size:12.5px;color:var(--mut);line-height:1.6;max-height:58vh;overflow:auto"></div></div>
   </div>
 </div>
 
@@ -950,7 +950,33 @@ function dirAprobar(){if(!confirm('¿Aprobar esta etapa y que el proyecto avance
 /* --- SUBPANTALLA DE ETAPA: entrega + pantallas + editor simple --- */
 var ET_ARCHIVOS={MATEO:['validacion-mateo.md','mateo-entrega.md'],HAROLD:['harold-entrega.md'],BRIAN:['brian-entrega.md'],MARCA:['marca-entrega.md'],MAYA:['maya-entrega.md','ux-entrega.md'],JUN:['jun-entrega.md','ui-entrega.md']};
 function _disBase(proy){var c=_creds();return c.url+'/storage/v1/object/public/diseno/'+proy.toLowerCase();}
-function _mdLite(t){return _esc(t).replace(/^#{1,4} (.*)$/gm,function(_,x){return '<b style="color:var(--texto);font-size:13px">'+x+'</b>';}).replace(/\*\*([^*]+)\*\*/g,'<b style="color:var(--texto)">$1</b>');}
+function _mdLite(t){
+ var out=[],inList=false;
+ function cerrar(){if(inList){out.push('</ul>');inList=false;}}
+ _esc(t).split(/\r?\n/).forEach(function(l){
+  var s=l.trim();
+  if(/^#{1,2} /.test(s)){cerrar();out.push('<div style="font-size:15.5px;font-weight:700;color:var(--texto);margin:18px 0 6px">'+s.replace(/^#+ /,'')+'</div>');}
+  else if(/^#{3,6} /.test(s)){cerrar();out.push('<div style="font-size:13px;font-weight:700;color:var(--texto);margin:13px 0 4px">'+s.replace(/^#+ /,'')+'</div>');}
+  else if(/^[-*•] /.test(s)){if(!inList){out.push('<ul style="margin:4px 0 8px 18px;padding:0">');inList=true;}out.push('<li style="margin:3px 0">'+s.replace(/^[-*•] /,'')+'</li>');}
+  else if(/^---+$/.test(s)){cerrar();out.push('<hr style="border:0;border-top:1px solid rgba(255,255,255,.08);margin:14px 0">');}
+  else if(s===''){cerrar();out.push('<div style="height:7px"></div>');}
+  else{cerrar();out.push('<div style="margin:2px 0">'+s+'</div>');}
+ });
+ cerrar();
+ return out.join('').replace(/\*\*([^*]+)\*\*/g,'<b style="color:var(--texto)">$1</b>').replace(/`([^`]+)`/g,'<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;background:rgba(255,255,255,.07);padding:1px 5px;border-radius:5px">$1</span>');
+}
+var _vozTxt='';
+function etLeer(){
+ try{
+  var sy=window.speechSynthesis,b=document.getElementById('et_voz');
+  if(sy.speaking){sy.cancel();if(b)b.textContent='🔊 Leémelo';return;}
+  if(!_vozTxt){alert('Todavía no hay entrega cargada.');return;}
+  var u=new SpeechSynthesisUtterance(_vozTxt.slice(0,8000));
+  u.lang='es-US';u.rate=1.03;
+  u.onend=function(){if(b)b.textContent='🔊 Leémelo';};
+  sy.speak(u);if(b)b.textContent='⏹ Parar';
+ }catch(e){alert('Este navegador no puede leer en voz alta.');}
+}
 async function openEtapa(proy,etapa,rol){
  document.getElementById('et_name').textContent=etapa+' · '+rol;
  document.getElementById('et_sub').textContent='Proyecto '+proy;
@@ -963,6 +989,9 @@ async function openEtapa(proy,etapa,rol){
   try{var r=await fetch(base+'/entregas/'+cands[i]);if(r.ok)txt=await r.text();}catch(e){}
  }
  body.innerHTML=txt?_mdLite(txt):'La entrega todavía no se subió al panel.<br><br>En la compu, en la carpeta jaque, corré:<br><b>powershell -ExecutionPolicy Bypass -File cable\\subir.ps1</b><br><br>y volvé a tocar la etapa.';
+ try{window.speechSynthesis.cancel();}catch(e){}
+ var vb=document.getElementById('et_voz');if(vb)vb.textContent='🔊 Leémelo';
+ _vozTxt=txt?txt.replace(/[#*`_>\[\]]/g,'').replace(/\r?\n+/g,'. '):'';
  if(etapa==='JUN'||etapa==='MAYA'){
   try{
    var c=_creds();
