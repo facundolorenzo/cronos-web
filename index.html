@@ -633,14 +633,15 @@ body{background:#080a0b}
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
       <b id="scr_name" style="font-size:13px;flex:1"></b>
       <button class="mbtn-gh" id="scr_edit" onclick="edToggle()" style="padding:7px 12px;font-size:11.5px">✏ Editar</button>
-      <button class="mbtn-gh" id="scr_multi" onclick="edAgrupar()" style="padding:7px 12px;font-size:11.5px">⬚ Agrupar</button>
-      <button class="mbtn-gh" onclick="edDeshacer()" style="padding:7px 12px;font-size:11.5px">↩ Deshacer</button>
-      <button class="mbtn-gh" onclick="edFont(1.12)" style="padding:7px 12px;font-size:11.5px">A+</button>
-      <button class="mbtn-gh" onclick="edFont(0.89)" style="padding:7px 12px;font-size:11.5px">A−</button>
+      <span id="scr_tools" style="display:none;gap:8px;align-items:center">
+        <button class="mbtn-gh" id="scr_multi" onclick="edAgrupar()" style="padding:7px 12px;font-size:11.5px">⬚ Agrupar</button>
+        <button class="mbtn-gh" onclick="edDeshacer()" style="padding:7px 12px;font-size:11.5px">↩ Deshacer</button>
+        <button class="mbtn-gh" onclick="edFont(1.12)" style="padding:7px 12px;font-size:11.5px">A+</button>
+        <button class="mbtn-gh" onclick="edFont(0.89)" style="padding:7px 12px;font-size:11.5px">A−</button>
+      </span>
       <button class="mbtn-pri" onclick="edGuardar()" style="padding:7px 12px;font-size:11.5px">Guardar</button>
       <button class="mclose" style="position:static" onclick="closeModal('scrmodal')">✕</button>
     </div>
-    <div id="scr_hint" style="font-size:11px;color:var(--mut);margin-bottom:8px">Mirá la pantalla. Con ✏ Editar: tocá un elemento, arrastralo para moverlo, A+/A− para la letra.</div>
     <div id="scr_zone" style="display:flex;justify-content:center">
       <div id="scr_wrap" style="overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:20px;background:#111;box-shadow:0 10px 30px rgba(0,0,0,.5)">
         <iframe id="scr_frame" style="width:390px;height:844px;border:0;transform-origin:top left;display:block"></iframe>
@@ -1104,7 +1105,7 @@ async function openPantalla(proy,archivo){
   var fr=document.getElementById('scr_frame');
   fr.srcdoc=html;
   fr.onload=function(){_edDoc=fr.contentDocument;_edPrep();};
- }catch(e){document.getElementById('scr_hint').textContent='No se pudo cargar la pantalla.';}
+ }catch(e){alert('No se pudo cargar la pantalla.');}
 }
 var _edMoved=false,_edRs=null,_edSels=[],_edMulti=false,_edHist=[];
 function _edNombre(el){var t=(el.tagName||'').toLowerCase();if(/^(h1|h2|h3|h4|h5|h6|p|span|small|label|b|i|strong|em)$/.test(t))return 'TEXTO';if(t==='button'||t==='a')return 'BOTÓN';if(t==='img')return 'IMAGEN';if(t==='input'||t==='textarea'||t==='select')return 'CAMPO';return 'CAJA';}
@@ -1155,7 +1156,6 @@ function edAgrupar(){
  _edMulti=!_edMulti;
  var b=document.getElementById('scr_multi');
  if(b){b.style.background=_edMulti?'rgba(53,210,154,.25)':'';b.textContent=_edMulti?'⬚ Agrupando…':'⬚ Agrupar';}
- document.getElementById('scr_hint').textContent=_edMulti?'MODO AGRUPAR: tocá varios elementos y quedan elegidos juntos (tocá uno de nuevo para sacarlo). Arrastrá o esquinas = TODOS juntos, textos incluidos. ⬚ de nuevo para salir.':_hintEd();
 }
 function _edEditarTexto(el){
  _edSnap('texto');
@@ -1292,7 +1292,7 @@ function _edKeys(e){
  _edHandles();
 }
 document.addEventListener('keydown',function(e){if(document.getElementById('scrmodal').classList.contains('open'))_edKeys(e);});
-function edToggle(){_edOn=!_edOn;document.getElementById('scr_edit').textContent=_edOn?'✏ Editando…':'✏ Editar';document.getElementById('scr_hint').textContent=_edOn?_hintEd():'Mirá la pantalla. Con ✏ Editar la corregís vos mismo.';if(!_edOn){_edDeselect();_edMulti=false;var b=document.getElementById('scr_multi');if(b){b.style.background='';b.textContent='⬚ Agrupar';}}}
+function edToggle(){_edOn=!_edOn;document.getElementById('scr_edit').textContent=_edOn?'✏ Editando…':'✏ Editar';document.getElementById('scr_tools').style.display=_edOn?'flex':'none';if(!_edOn){_edDeselect();_edMulti=false;var b=document.getElementById('scr_multi');if(b){b.style.background='';b.textContent='⬚ Agrupar';}}}
 function edFont(f){
  if(!_edOn||!_edSels.length){alert('Primero tocá ✏ Editar y elegí un elemento.');return;}
  _edSnap('letra');
