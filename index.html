@@ -609,11 +609,11 @@ body{background:#080a0b}
 
 <!-- MODAL ETAPA (lo que hizo cada agente) -->
 <div class="modal" id="etmodal" onclick="if(event.target===this)closeModal('etmodal')">
-  <div class="modal-card" style="max-width:560px">
+  <div class="modal-card" style="max-width:860px;width:min(92vw,860px);resize:both;overflow:auto;min-width:320px;min-height:300px">
     <button class="mclose" onclick="closeModal('etmodal')">✕</button>
     <div class="mhead"><div><div class="mn" id="et_name"></div><div class="mr" id="et_sub"></div></div></div>
     <div id="et_pant" style="display:none;margin:10px 0"><div class="mt">Pantallas · tocá una para verla y editarla</div><div id="et_pantlist" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div></div>
-    <div class="msec"><div class="mt">La entrega</div><div id="et_body" style="font-size:12.5px;color:var(--mut);line-height:1.6;max-height:48vh;overflow:auto;white-space:pre-wrap"></div></div>
+    <div class="msec"><div class="mt">La entrega</div><div id="et_body" style="font-size:12.5px;color:var(--mut);line-height:1.6;max-height:58vh;overflow:auto;white-space:pre-wrap"></div></div>
   </div>
 </div>
 
