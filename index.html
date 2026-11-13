@@ -622,7 +622,7 @@ body{background:#080a0b}
   <div class="modal-card" style="max-width:94vw;width:94vw">
     <button class="mclose" onclick="closeModal('flujomodal')">✕</button>
     <div class="mhead"><div><div class="mn">Recorrido de la app</div><div class="mr" id="fl_sub">En el orden en que lo vive el jugador · tocá una para zoom y edición</div></div></div>
-    <div id="fl_list" style="display:flex;gap:8px;align-items:center;overflow-x:auto;padding:12px 2px"></div>
+    <div id="fl_list" style="display:flex;gap:6px;align-items:center;overflow-x:auto;padding:12px 2px"></div>
   </div>
 </div>
 
@@ -990,12 +990,20 @@ function _ordenPant(files){
 }
 async function openFlujo(){
  if(!_pantFiles.length)return;
- var base=_disBase(_pantProy),k=0.36;
+ var base=_disBase(_pantProy),k=0.33;
+ var flujo=[];
+ try{var fr0=await fetch(base+'/pantallas/flujo.json');if(fr0.ok)flujo=await fr0.json();}catch(e){}
+ function flecha(a,b){
+  var ts=(flujo||[]).filter(function(t){return t.de===a&&t.a===b;});
+  var chip=ts.length?'<span style="font-size:9.5px;background:rgba(53,210,154,.12);border:1px solid rgba(53,210,154,.45);color:var(--esmb);padding:3px 9px;border-radius:99px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis">'+_esc(ts[0].boton)+(ts.length>1?' +'+(ts.length-1):'')+'</span>':'';
+  return '<div style="flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;max-width:100px">'+chip+'<span style="color:'+(ts.length?'var(--esm)':'var(--mut2)')+';font-size:19px;line-height:1">→</span></div>';
+ }
  document.getElementById('fl_list').innerHTML=_pantFiles.map(function(f,i){
-  var cel='<div style="flex:none;text-align:center"><div style="font-size:10.5px;color:var(--mut);margin-bottom:6px;font-family:\'JetBrains Mono\',monospace">'+(i+1)+' · '+_esc(f.name.replace('.html',''))+'</div>'
-   +'<div onclick="closeModal(\'flujomodal\');openPantalla(\''+_esc(_pantProy)+'\',\''+_esc(f.name)+'\')" style="width:'+(390*k)+'px;height:'+(844*k)+'px;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:zoom-in;background:#111">'
+  var nom=f.name.replace('.html','');
+  var cel='<div style="flex:none;text-align:center"><div style="font-size:10px;color:var(--mut);margin-bottom:5px;font-family:\'JetBrains Mono\',monospace">'+(i+1)+' · '+_esc(nom)+'</div>'
+   +'<div onclick="closeModal(\'flujomodal\');openPantalla(\''+_esc(_pantProy)+'\',\''+_esc(f.name)+'\')" style="width:'+(390*k)+'px;height:'+(844*k)+'px;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:10px;cursor:zoom-in;background:#111">'
    +'<iframe id="fl_f_'+i+'" style="width:390px;height:844px;border:0;transform:scale('+k+');transform-origin:top left;pointer-events:none"></iframe></div></div>';
-  return cel+(i<_pantFiles.length-1?'<div style="flex:none;color:var(--mut2);font-size:20px">→</div>':'');
+  return cel+(i<_pantFiles.length-1?flecha(nom,_pantFiles[i+1].name.replace('.html','')):'');
  }).join('');
  document.getElementById('flujomodal').classList.add('open');
  _pantFiles.forEach(async function(f,i){
