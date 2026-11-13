@@ -1020,8 +1020,39 @@ function _edPrep(){
  var end=function(){_edDrag=null;};
  _edDoc.addEventListener('mousedown',start,true);_edDoc.addEventListener('mousemove',move,true);_edDoc.addEventListener('mouseup',end,true);
  _edDoc.addEventListener('touchstart',start,{capture:true,passive:false});_edDoc.addEventListener('touchmove',move,{capture:true,passive:false});_edDoc.addEventListener('touchend',end,true);
+ /* doble click = editar el texto en el lugar */
+ _edDoc.addEventListener('dblclick',function(e){
+  if(!_edOn)return;e.preventDefault();e.stopPropagation();
+  var el=e.target;if(el===_edDoc.body||el===_edDoc.documentElement)return;
+  if(_edSel&&_edSel!==el)_edSel.style.outline='';
+  _edSel=el;el.style.outline='2px dashed #E0A64E';
+  if(el.dataset.ctxt0===undefined)el.dataset.ctxt0=el.textContent;
+  el.setAttribute('contenteditable','true');el.focus();
+ },true);
+ _edDoc.addEventListener('focusout',function(e){
+  var el=e.target;
+  if(el&&el.getAttribute&&el.getAttribute('contenteditable')==='true'){
+   el.removeAttribute('contenteditable');
+   if(el.dataset.ctxt0!==undefined&&el.textContent.trim()!==el.dataset.ctxt0.trim()){el.dataset.ctxt=el.textContent.trim();el.dataset.ced='1';}
+   el.style.outline=(_edSel===el)?'2px dashed #35D29A':'';
+  }
+ },true);
+ _edDoc.addEventListener('keydown',_edKeys,true);
 }
-function edToggle(){_edOn=!_edOn;document.getElementById('scr_edit').textContent=_edOn?'✏ Editando…':'✏ Editar';document.getElementById('scr_hint').textContent=_edOn?'Tocá un elemento para elegirlo, arrastralo para moverlo, A+/A− para la letra. Al final: Guardar.':'Mirá la pantalla. Con ✏ Editar: tocá un elemento, arrastralo para moverlo, A+/A− para la letra.';if(!_edOn&&_edSel){_edSel.style.outline='';_edSel=null;}}
+/* flechas = mover fino (1px; con Shift, 10px) */
+function _edKeys(e){
+ if(!_edOn||!_edSel)return;
+ var a=_edDoc&&_edDoc.activeElement;
+ if(a&&a.getAttribute&&a.getAttribute('contenteditable')==='true'){if(e.key==='Enter'){e.preventDefault();a.blur();}return;}
+ var paso=e.shiftKey?10:1,dx=0,dy=0;
+ if(e.key==='ArrowLeft')dx=-paso;else if(e.key==='ArrowRight')dx=paso;else if(e.key==='ArrowUp')dy=-paso;else if(e.key==='ArrowDown')dy=paso;else return;
+ e.preventDefault();
+ var ndx=parseFloat(_edSel.dataset.cdx||0)+dx,ndy=parseFloat(_edSel.dataset.cdy||0)+dy;
+ _edSel.dataset.cdx=ndx;_edSel.dataset.cdy=ndy;_edSel.dataset.ced='1';
+ _edSel.style.transform='translate('+ndx+'px,'+ndy+'px)';
+}
+document.addEventListener('keydown',function(e){if(document.getElementById('scrmodal').classList.contains('open'))_edKeys(e);});
+function edToggle(){_edOn=!_edOn;document.getElementById('scr_edit').textContent=_edOn?'✏ Editando…':'✏ Editar';document.getElementById('scr_hint').textContent=_edOn?'Tocá un elemento · arrastrá o usá las FLECHAS del teclado (Shift = 10px) · A+/A− letra · DOBLE CLICK en un texto para reescribirlo · Guardar.':'Mirá la pantalla. Con ✏ Editar la corregís vos mismo.';if(!_edOn&&_edSel){_edSel.style.outline='';_edSel=null;}}
 function edFont(f){
  if(!_edOn||!_edSel){alert('Primero tocá ✏ Editar y elegí un elemento.');return;}
  var w=document.getElementById('scr_frame').contentWindow;
@@ -1044,7 +1075,7 @@ async function edGuardar(){
  if(!eds.length){alert('No hiciste cambios todavía.');return;}
  var cambios=[];
  eds.forEach(function(el){
-  cambios.push({elemento:_edPath(el),texto:(el.textContent||'').trim().slice(0,60),mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null});
+  cambios.push({elemento:_edPath(el),texto:(el.dataset.ctxt0||el.textContent||'').trim().slice(0,60),mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null,texto_nuevo:el.dataset.ctxt||null});
  });
  var nota=prompt('Nota para los agentes (opcional). Ej: "el botón va más abajo y más chico"','')||'';
  var r=await _supa.from('ajustes').insert({proyecto:_edProy,pantalla:_edPant,cambios:cambios,nota:nota});
