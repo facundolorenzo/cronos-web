@@ -1036,7 +1036,7 @@ async function openEtapa(proy,etapa,rol){
  var base=_disBase(proy),txt=null;
  var cands=ET_ARCHIVOS[etapa]||[etapa.toLowerCase()+'-entrega.md'];
  for(var i=0;i<cands.length&&txt===null;i++){
-  try{var r=await fetch(base+'/entregas/'+cands[i]);if(r.ok)txt=await r.text();}catch(e){}
+  try{var r=await fetch(base+'/entregas/'+cands[i]+'?v='+Date.now());if(r.ok)txt=await r.text();}catch(e){}
  }
  body.innerHTML=txt?_mdLite(txt):'La entrega todavía no se subió al panel.<br><br>En la compu, en la carpeta jaque, corré:<br><b>powershell -ExecutionPolicy Bypass -File cable\\subir.ps1</b><br><br>y volvé a tocar la etapa.';
  try{window.speechSynthesis.cancel();}catch(e){}
@@ -1097,7 +1097,7 @@ async function openFlujo(){
  document.getElementById('flujomodal').classList.add('open');
  _pantFiles.forEach(async function(f,i){
   try{
-   var r=await fetch(base+'/pantallas/'+encodeURIComponent(f.name));
+   var r=await fetch(base+'/pantallas/'+encodeURIComponent(f.name)+'?v='+Date.now());
    var html=await r.text();
    if(!/<base /i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
    html=html.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
@@ -1126,7 +1126,7 @@ async function openPantalla(proy,archivo){
  setTimeout(scrFit,30);
  var base=_disBase(proy);
  try{
-  var r=await fetch(base+'/pantallas/'+archivo);
+  var r=await fetch(base+'/pantallas/'+archivo+'?v='+Date.now());
   var html=await r.text();
   if(!/<base /i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
   html=html.replace(/<\/head>/i,'<style id="cr-noscroll">::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
@@ -1526,7 +1526,7 @@ async function edGuardar(){
   clon.querySelectorAll('[contenteditable]').forEach(function(n){n.removeAttribute('contenteditable');});
   clon.querySelectorAll('[data-ced],[data-cr0],[data-ctxt0],[data-ctxt],[data-cnew],[data-cdup]').forEach(function(n){n.removeAttribute('data-ced');n.removeAttribute('data-cr0');n.removeAttribute('data-ctxt0');n.removeAttribute('data-ctxt');n.removeAttribute('data-cnew');n.removeAttribute('data-cdup');});
   var htmlFin='<!doctype html>\n'+clon.outerHTML;
-  var up=await _supa.storage.from('diseno').upload(_edProy.toLowerCase()+'/pantallas/'+_edPant,new Blob([htmlFin],{type:'text/html'}),{upsert:true,contentType:'text/html'});
+  var up=await _supa.storage.from('diseno').upload(_edProy.toLowerCase()+'/pantallas/'+_edPant,new Blob([htmlFin],{type:'text/html'}),{upsert:true,contentType:'text/html',cacheControl:'0'});
   if(up.error)err2=up.error.message;else ok2=true;
  }catch(e9){err2=e9.message||String(e9);}
  eds.forEach(function(el){delete el.dataset.ced;});
