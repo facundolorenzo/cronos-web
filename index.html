@@ -990,6 +990,24 @@ function _mdLite(t){
   .replace(/#([0-9A-Fa-f]{6})\b/g,'<span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#$1;border:1px solid rgba(255,255,255,.3);vertical-align:-2px;margin-right:5px"></span><span style="font-family:\'JetBrains Mono\',monospace;font-size:10.5px;color:var(--mut)">#$1</span>');
 }
 var _vozTxt='';
+function _vozDe(txt){
+ /* separa por títulos y lee de lo más importante a lo menos, anunciando cada sección */
+ var lines=txt.split(/\r?\n/),secs=[],cur={t:'Estado',b:[]};
+ lines.forEach(function(l){
+  var m=l.match(/^#{1,4} +(.+)/);
+  if(m){secs.push(cur);cur={t:m[1].trim(),b:[]};}
+  else cur.b.push(l);
+ });
+ secs.push(cur);
+ function limpiar(s){return s.replace(/`[^`]*`/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/[\w.\/\\~-]*\.(md|html|css|json|png|jpg|ps1|mjs|js)\b/gi,' ').replace(/\|/g,', ').replace(/[#*_>\[\]{}()]/g,'').replace(/\r?\n+/g,'. ').replace(/\s{2,}/g,' ').replace(/(\. ){2,}/g,'. ').trim();}
+ var prior=[/en 30 segundos/i,/qué quedó|que quedo/i,/decid/i,/riesgo/i,/firm/i,/pendiente/i];
+ var orden=[];
+ prior.forEach(function(rx){secs.forEach(function(s){if(rx.test(s.t)&&orden.indexOf(s)<0&&s.b.join('').trim())orden.push(s);});});
+ if(!orden.length)orden=secs.filter(function(s){return s.b.join('').trim();}).slice(0,4);
+ var out='Resumen de la entrega. ';
+ orden.forEach(function(s){out+='Sección: '+limpiar(s.t)+'. '+limpiar(s.b.join('\n'))+'. ';});
+ return out.slice(0,6500);
+}
 function etLeer(){
  try{
   var sy=window.speechSynthesis,b=document.getElementById('et_voz');
@@ -1015,7 +1033,7 @@ async function openEtapa(proy,etapa,rol){
  body.innerHTML=txt?_mdLite(txt):'La entrega todavía no se subió al panel.<br><br>En la compu, en la carpeta jaque, corré:<br><b>powershell -ExecutionPolicy Bypass -File cable\\subir.ps1</b><br><br>y volvé a tocar la etapa.';
  try{window.speechSynthesis.cancel();}catch(e){}
  var vb=document.getElementById('et_voz');if(vb)vb.textContent='🔊 Leémelo';
- _vozTxt=txt?txt.replace(/[#*`_>\[\]]/g,'').replace(/\r?\n+/g,'. '):'';
+ _vozTxt=txt?_vozDe(txt):'';
  if(etapa==='JUN'||etapa==='MAYA'){
   try{
    var c=_creds();
