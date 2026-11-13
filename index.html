@@ -1036,37 +1036,73 @@ async function openPantalla(proy,archivo){
   fr.onload=function(){_edDoc=fr.contentDocument;_edPrep();};
  }catch(e){document.getElementById('scr_hint').textContent='No se pudo cargar la pantalla.';}
 }
+var _edMoved=false,_edRs=null;
+function _edNombre(el){var t=(el.tagName||'').toLowerCase();if(/^(h1|h2|h3|h4|h5|h6|p|span|small|label|b|i|strong|em)$/.test(t))return 'TEXTO';if(t==='button'||t==='a')return 'BOTÓN';if(t==='img')return 'IMAGEN';if(t==='input'||t==='textarea'||t==='select')return 'CAMPO';return 'CAJA';}
+function _edSelect(el){if(_edSel)_edSel.style.outline='';_edSel=el;el.style.outline='2px dashed #35D29A';_edHandles();}
+function _edClearHandles(){if(!_edDoc)return;var hs=_edDoc.querySelectorAll('.cr-h,.cr-tag');for(var i=0;i<hs.length;i++)hs[i].parentNode.removeChild(hs[i]);}
+function _edHandles(){
+ _edClearHandles();
+ if(!_edSel||!_edOn||!_edDoc)return;
+ var w=_edDoc.defaultView,r=_edSel.getBoundingClientRect(),sx=w.scrollX||0,sy=w.scrollY||0;
+ var tag=_edDoc.createElement('div');tag.className='cr-tag';tag.textContent=_edNombre(_edSel);
+ tag.style.left=(r.left+sx)+'px';tag.style.top=Math.max(0,r.top+sy-22)+'px';_edDoc.body.appendChild(tag);
+ var hs=[['e',r.right-8+sx,r.top+r.height/2-8+sy,'ew-resize'],['s',r.left+r.width/2-8+sx,r.bottom-8+sy,'ns-resize'],['se',r.right-8+sx,r.bottom-8+sy,'nwse-resize']];
+ hs.forEach(function(h){
+  var d=_edDoc.createElement('div');d.className='cr-h';d.dataset.m=h[0];
+  d.style.left=h[1]+'px';d.style.top=h[2]+'px';d.style.cursor=h[3];
+  var ds=function(e){e.preventDefault();e.stopPropagation();var p=e.touches?e.touches[0]:e;_edRs={m:h[0],x:p.clientX,y:p.clientY,w:_edSel.offsetWidth,h:_edSel.offsetHeight};};
+  d.addEventListener('mousedown',ds,true);d.addEventListener('touchstart',ds,{capture:true,passive:false});
+  _edDoc.body.appendChild(d);
+ });
+}
 function _edPrep(){
  if(!_edDoc)return;
+ var st=_edDoc.createElement('style');
+ st.textContent='.cr-h{position:absolute;width:16px;height:16px;background:#E0A64E;border:2px solid #1c1711;border-radius:5px;z-index:999999}.cr-tag{position:absolute;background:#35D29A;color:#06130d;font:700 10px/1 system-ui;padding:4px 8px;border-radius:6px;z-index:999999;letter-spacing:.05em}';
+ (_edDoc.head||_edDoc.body).appendChild(st);
  _edDoc.addEventListener('click',function(e){
-  if(!_edOn)return;e.preventDefault();e.stopPropagation();
+  if(!_edOn)return;
+  var cn=e.target.className;if(cn==='cr-h'||cn==='cr-tag')return;
+  e.preventDefault();e.stopPropagation();
+  if(_edMoved){_edMoved=false;return;}
   var el=e.target;if(el===_edDoc.body||el===_edDoc.documentElement)return;
-  if(_edSel)_edSel.style.outline='';
-  _edSel=el;el.style.outline='2px dashed #35D29A';
+  if(_edSel===el&&el.parentElement&&el.parentElement!==_edDoc.body)_edSelect(el.parentElement);
+  else _edSelect(el);
  },true);
  var start=function(e){
   if(!_edOn||!_edSel)return;var t=e.target;
+  if(t.className==='cr-h'||t.className==='cr-tag')return;
   if(t!==_edSel&&!_edSel.contains(t))return;
   e.preventDefault();
   var p=e.touches?e.touches[0]:e;
   _edDrag={x:p.clientX,y:p.clientY,dx:parseFloat(_edSel.dataset.cdx||0),dy:parseFloat(_edSel.dataset.cdy||0)};
  };
  var move=function(e){
+  if(_edRs&&_edSel){e.preventDefault();
+   var p=e.touches?e.touches[0]:e;
+   var dw=p.clientX-_edRs.x,dh=p.clientY-_edRs.y;
+   if(_edRs.m!=='s'){var nw=Math.max(14,Math.round(_edRs.w+dw));_edSel.style.width=nw+'px';_edSel.dataset.cw=nw;}
+   if(_edRs.m!=='e'){var nh=Math.max(10,Math.round(_edRs.h+dh));_edSel.style.height=nh+'px';_edSel.dataset.ch=nh;}
+   _edSel.dataset.ced='1';_edMoved=true;_edHandles();return;
+  }
   if(!_edDrag||!_edSel)return;e.preventDefault();
-  var p=e.touches?e.touches[0]:e;
-  var dx=_edDrag.dx+(p.clientX-_edDrag.x),dy=_edDrag.dy+(p.clientY-_edDrag.y);
+  var p2=e.touches?e.touches[0]:e;
+  var dx=_edDrag.dx+(p2.clientX-_edDrag.x),dy=_edDrag.dy+(p2.clientY-_edDrag.y);
+  if(Math.abs(p2.clientX-_edDrag.x)+Math.abs(p2.clientY-_edDrag.y)>2)_edMoved=true;
   _edSel.dataset.cdx=dx;_edSel.dataset.cdy=dy;_edSel.dataset.ced='1';
   _edSel.style.transform='translate('+dx+'px,'+dy+'px)';
+  _edHandles();
  };
- var end=function(){_edDrag=null;};
+ var end=function(){_edDrag=null;_edRs=null;};
  _edDoc.addEventListener('mousedown',start,true);_edDoc.addEventListener('mousemove',move,true);_edDoc.addEventListener('mouseup',end,true);
  _edDoc.addEventListener('touchstart',start,{capture:true,passive:false});_edDoc.addEventListener('touchmove',move,{capture:true,passive:false});_edDoc.addEventListener('touchend',end,true);
  /* doble click = editar el texto en el lugar */
  _edDoc.addEventListener('dblclick',function(e){
-  if(!_edOn)return;e.preventDefault();e.stopPropagation();
+  if(!_edOn)return;
+  var cn=e.target.className;if(cn==='cr-h'||cn==='cr-tag')return;
+  e.preventDefault();e.stopPropagation();
   var el=e.target;if(el===_edDoc.body||el===_edDoc.documentElement)return;
-  if(_edSel&&_edSel!==el)_edSel.style.outline='';
-  _edSel=el;el.style.outline='2px dashed #E0A64E';
+  _edSelect(el);el.style.outline='2px dashed #E0A64E';
   if(el.dataset.ctxt0===undefined)el.dataset.ctxt0=el.textContent;
   el.setAttribute('contenteditable','true');el.focus();
  },true);
@@ -1076,6 +1112,7 @@ function _edPrep(){
    el.removeAttribute('contenteditable');
    if(el.dataset.ctxt0!==undefined&&el.textContent.trim()!==el.dataset.ctxt0.trim()){el.dataset.ctxt=el.textContent.trim();el.dataset.ced='1';}
    el.style.outline=(_edSel===el)?'2px dashed #35D29A':'';
+   _edHandles();
   }
  },true);
  _edDoc.addEventListener('keydown',_edKeys,true);
@@ -1091,15 +1128,17 @@ function _edKeys(e){
  var ndx=parseFloat(_edSel.dataset.cdx||0)+dx,ndy=parseFloat(_edSel.dataset.cdy||0)+dy;
  _edSel.dataset.cdx=ndx;_edSel.dataset.cdy=ndy;_edSel.dataset.ced='1';
  _edSel.style.transform='translate('+ndx+'px,'+ndy+'px)';
+ _edHandles();
 }
 document.addEventListener('keydown',function(e){if(document.getElementById('scrmodal').classList.contains('open'))_edKeys(e);});
-function edToggle(){_edOn=!_edOn;document.getElementById('scr_edit').textContent=_edOn?'✏ Editando…':'✏ Editar';document.getElementById('scr_hint').textContent=_edOn?'Tocá un elemento · arrastrá o usá las FLECHAS del teclado (Shift = 10px) · A+/A− letra · DOBLE CLICK en un texto para reescribirlo · Guardar.':'Mirá la pantalla. Con ✏ Editar la corregís vos mismo.';if(!_edOn&&_edSel){_edSel.style.outline='';_edSel=null;}}
+function edToggle(){_edOn=!_edOn;document.getElementById('scr_edit').textContent=_edOn?'✏ Editando…':'✏ Editar';document.getElementById('scr_hint').textContent=_edOn?'Tocá = elegir (la etiqueta te dice qué agarraste; tocá de nuevo = su contenedor) · arrastrá o FLECHAS para mover · manijas naranjas = ancho/alto · A+/A− letra · doble click = reescribir texto · Guardar.':'Mirá la pantalla. Con ✏ Editar la corregís vos mismo.';if(!_edOn){if(_edSel)_edSel.style.outline='';_edSel=null;_edClearHandles();}}
 function edFont(f){
  if(!_edOn||!_edSel){alert('Primero tocá ✏ Editar y elegí un elemento.');return;}
  var w=document.getElementById('scr_frame').contentWindow;
  var cur=parseFloat(w.getComputedStyle(_edSel).fontSize)||14;
  var nv=Math.max(7,Math.round(cur*f*10)/10);
  _edSel.style.fontSize=nv+'px';_edSel.dataset.cfs=nv;_edSel.dataset.ced='1';
+ _edHandles();
 }
 function _edPath(el){
  var parts=[];var cur=el;
@@ -1116,7 +1155,7 @@ async function edGuardar(){
  if(!eds.length){alert('No hiciste cambios todavía.');return;}
  var cambios=[];
  eds.forEach(function(el){
-  cambios.push({elemento:_edPath(el),texto:(el.dataset.ctxt0||el.textContent||'').trim().slice(0,60),mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null,texto_nuevo:el.dataset.ctxt||null});
+  cambios.push({elemento:_edPath(el),texto:(el.dataset.ctxt0||el.textContent||'').trim().slice(0,60),mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null,ancho_px:el.dataset.cw?parseFloat(el.dataset.cw):null,alto_px:el.dataset.ch?parseFloat(el.dataset.ch):null,texto_nuevo:el.dataset.ctxt||null});
  });
  var nota=prompt('Nota para los agentes (opcional). Ej: "el botón va más abajo y más chico"','')||'';
  var r=await _supa.from('ajustes').insert({proyecto:_edProy,pantalla:_edPant,cambios:cambios,nota:nota});
