@@ -644,10 +644,10 @@ body{background:#080a0b}
     </div>
     <div id="scr_zone" style="display:flex;justify-content:center">
       <div id="scr_wrap" style="overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:20px;background:#111;box-shadow:0 10px 30px rgba(0,0,0,.5)">
-        <iframe id="scr_frame" style="width:390px;height:844px;border:0;transform-origin:top left;display:block"></iframe>
+        <iframe id="scr_frame" style="width:430px;height:932px;border:0;transform-origin:top left;display:block"></iframe>
       </div>
     </div>
-    <div style="text-align:center;font-size:10.5px;color:var(--mut);margin-top:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em">390 × 844 · TAMAÑO REAL DE CELULAR</div>
+    <div style="text-align:center;font-size:10.5px;color:var(--mut);margin-top:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em">430 × 932 · IPHONE 16 PRO MAX</div>
   </div>
 </div>
 
@@ -1062,7 +1062,7 @@ function _ordenPant(files){
 }
 async function openFlujo(){
  if(!_pantFiles.length)return;
- var base=_disBase(_pantProy),k=0.33;
+ var base=_disBase(_pantProy),k=0.3;
  var flujo=[];
  try{var fr0=await fetch(base+'/pantallas/flujo.json');if(fr0.ok)flujo=await fr0.json();}catch(e){}
  function flecha(a,b){
@@ -1080,8 +1080,8 @@ async function openFlujo(){
   var borde=nueva?'2px solid var(--esmb);box-shadow:0 0 14px rgba(94,235,174,.35)':(cambio?'2px solid var(--amber);box-shadow:0 0 12px rgba(224,166,78,.3)':'1px solid rgba(255,255,255,.12)');
   var chip=nueva?' <span style="background:rgba(53,210,154,.18);color:var(--esmb);padding:2px 7px;border-radius:99px;font-size:9px;font-weight:700">NUEVA</span>':(cambio?' <span style="background:rgba(224,166,78,.18);color:var(--amber);padding:2px 7px;border-radius:99px;font-size:9px;font-weight:700">CAMBIÓ</span>':'');
   var cel='<div style="flex:none;text-align:center"><div style="font-size:10px;color:var(--mut);margin-bottom:5px;font-family:\'JetBrains Mono\',monospace">'+(i+1)+' · '+_esc(nom)+chip+'</div>'
-   +'<div onclick="closeModal(\'flujomodal\');openPantalla(\''+_esc(_pantProy)+'\',\''+_esc(f.name)+'\')" style="width:'+(390*k)+'px;height:'+(844*k)+'px;overflow:hidden;border:'+borde+';border-radius:10px;cursor:zoom-in;background:#111">'
-   +'<iframe id="fl_f_'+i+'" style="width:390px;height:844px;border:0;transform:scale('+k+');transform-origin:top left;pointer-events:none"></iframe></div></div>';
+   +'<div onclick="closeModal(\'flujomodal\');openPantalla(\''+_esc(_pantProy)+'\',\''+_esc(f.name)+'\')" style="width:'+(430*k)+'px;height:'+(932*k)+'px;overflow:hidden;border:'+borde+';border-radius:10px;cursor:zoom-in;background:#111">'
+   +'<iframe id="fl_f_'+i+'" style="width:430px;height:932px;border:0;transform:scale('+k+');transform-origin:top left;pointer-events:none"></iframe></div></div>';
   return cel+(i<_pantFiles.length-1?flecha(nom,_pantFiles[i+1].name.replace('.html','')):'');
  }).join('');
  /* recordar la última mirada, pero no pisarla mientras seguís trabajando (90 min de gracia) */
@@ -1092,6 +1092,7 @@ async function openFlujo(){
    var r=await fetch(base+'/pantallas/'+encodeURIComponent(f.name));
    var html=await r.text();
    if(!/<base /i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
+   html=html.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
    var fr=document.getElementById('fl_f_'+i);if(fr)fr.srcdoc=html;
   }catch(e){}
  });
@@ -1100,13 +1101,13 @@ async function openFlujo(){
 var _edOn=false,_edDoc=null,_edSel=null,_edProy='',_edPant='',_edDrag=null;
 function scrFit(){
  var zone=document.getElementById('scr_zone');if(!zone)return;
- var availW=zone.clientWidth||390;
- var availH=Math.max(320,window.innerHeight-230);
- var k=Math.min(availW/390,availH/844,1);
+ var availW=zone.clientWidth||430;
+ var availH=Math.max(360,window.innerHeight-165);
+ var k=Math.min(availW/430,availH/932,1);
  var fr=document.getElementById('scr_frame');if(!fr)return;
  fr.style.transform='scale('+k+')';
  var w=document.getElementById('scr_wrap');
- w.style.width=(390*k)+'px';w.style.height=(844*k)+'px';
+ w.style.width=(430*k)+'px';w.style.height=(932*k)+'px';
 }
 window.addEventListener('resize',scrFit);
 async function openPantalla(proy,archivo){
@@ -1120,6 +1121,7 @@ async function openPantalla(proy,archivo){
   var r=await fetch(base+'/pantallas/'+archivo);
   var html=await r.text();
   if(!/<base /i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
+  html=html.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
   var fr=document.getElementById('scr_frame');
   fr.srcdoc=html;
   fr.onload=function(){_edDoc=fr.contentDocument;_edPrep();};
@@ -1354,7 +1356,8 @@ async function edGuardar(){
    if(antes.f&&desp.f&&Math.abs(desp.f-antes.f)>0.5)partes.push('letra de '+antes.f+'px a '+desp.f+'px');
   }
   if(el.dataset.ctxt)partes.push('texto cambiado de "'+t0+'" a "'+el.dataset.ctxt+'"');
-  if(Math.abs((desp.x+desp.w/2)-195)<=5)partes.push('quedó CENTRADO horizontal en la pantalla (390px)');
+  var _W=(_edDoc.documentElement&&_edDoc.documentElement.clientWidth)||430;
+  if(Math.abs((desp.x+desp.w/2)-_W/2)<=5)partes.push('quedó CENTRADO horizontal en la pantalla');
   cambios.push({elemento:_edPath(el),detalle:nom+' "'+t0+'": '+(partes.join('; ')||'ajustado'),antes:antes,despues:desp,texto:t0,mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null,ancho_px:el.dataset.cw?parseFloat(el.dataset.cw):null,alto_px:el.dataset.ch?parseFloat(el.dataset.ch):null,escala:el.dataset.cs?parseFloat(el.dataset.cs):null,texto_nuevo:el.dataset.ctxt||null});
  });
  var nota=prompt('Nota opcional (el antes y el después ya se registran solos). Si querés, contá la intención: "más aire arriba"','')||'';
