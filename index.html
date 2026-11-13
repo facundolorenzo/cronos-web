@@ -602,6 +602,32 @@ body{background:#080a0b}
   </div>
 </div>
 
+<!-- MODAL ETAPA (lo que hizo cada agente) -->
+<div class="modal" id="etmodal" onclick="if(event.target===this)closeModal('etmodal')">
+  <div class="modal-card" style="max-width:560px">
+    <button class="mclose" onclick="closeModal('etmodal')">✕</button>
+    <div class="mhead"><div><div class="mn" id="et_name"></div><div class="mr" id="et_sub"></div></div></div>
+    <div id="et_pant" style="display:none;margin:10px 0"><div class="mt">Pantallas · tocá una para verla y editarla</div><div id="et_pantlist" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div></div>
+    <div class="msec"><div class="mt">La entrega</div><div id="et_body" style="font-size:12.5px;color:var(--mut);line-height:1.6;max-height:48vh;overflow:auto;white-space:pre-wrap"></div></div>
+  </div>
+</div>
+
+<!-- VISOR + EDITOR de pantallas -->
+<div class="modal" id="scrmodal">
+  <div class="modal-card" style="max-width:520px;padding:14px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <b id="scr_name" style="font-size:13px;flex:1"></b>
+      <button class="mbtn-gh" id="scr_edit" onclick="edToggle()" style="padding:7px 12px;font-size:11.5px">✏ Editar</button>
+      <button class="mbtn-gh" onclick="edFont(1.12)" style="padding:7px 12px;font-size:11.5px">A+</button>
+      <button class="mbtn-gh" onclick="edFont(0.89)" style="padding:7px 12px;font-size:11.5px">A−</button>
+      <button class="mbtn-pri" onclick="edGuardar()" style="padding:7px 12px;font-size:11.5px">Guardar</button>
+      <button class="mclose" style="position:static" onclick="closeModal('scrmodal')">✕</button>
+    </div>
+    <div id="scr_hint" style="font-size:11px;color:var(--mut);margin-bottom:8px">Mirá la pantalla. Con ✏ Editar: tocá un elemento, arrastralo para moverlo, A+/A− para la letra.</div>
+    <iframe id="scr_frame" style="width:100%;height:68vh;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:#111"></iframe>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="avatars.js"></script>
 <script>
@@ -848,7 +874,7 @@ function _fabPipelineHTML(proyecto){
   else if(s==='error'){cls='wait';ic='✕';extra='<span class="fab-badge">PROBLEMA</span>';}
   else{cls='todo';ic='·';}
   var m=(cls==='run'||cls==='wait')?'<span class="msg">'+_esc(msg[n])+'</span>':(cls==='done'?'<span class="msg">listo'+(when[n]?' · '+_evAgo(when[n]):'')+'</span>':'<span class="msg">en cola</span>');
-  return '<div class="fab-row '+cls+'"><span class="fab-ic">'+ic+'</span><span class="nm">'+n+'</span><span class="rl">'+rol+'</span>'+m+extra+'</div>';
+  return '<div class="fab-row '+cls+'" onclick="event.stopPropagation();openEtapa(\''+_esc(proyecto)+'\',\''+n+'\',\''+rol+'\')" style="cursor:pointer"><span class="fab-ic">'+ic+'</span><span class="nm">'+n+'</span><span class="rl">'+rol+'</span>'+m+extra+'</div>';
  }).join('');
  var last=evs[0],hcls='',htxt;
  if(fin)htxt='<b>INCUBACIÓN TERMINADA</b> — lista para tu aprobación final';
@@ -877,6 +903,109 @@ async function initInc(){
  fetchIncs();fetchEvs();
  if(_evTimer)clearInterval(_evTimer);
  _evTimer=setInterval(function(){fetchIncs();fetchEvs();},20000);
+}
+/* --- SUBPANTALLA DE ETAPA: entrega + pantallas + editor simple --- */
+var ET_ARCHIVOS={MATEO:['validacion-mateo.md','mateo-entrega.md'],HAROLD:['harold-entrega.md'],BRIAN:['brian-entrega.md'],MARCA:['marca-entrega.md'],MAYA:['maya-entrega.md','ux-entrega.md'],JUN:['jun-entrega.md','ui-entrega.md']};
+function _disBase(proy){var c=_creds();return c.url+'/storage/v1/object/public/diseno/'+proy.toLowerCase();}
+function _mdLite(t){return _esc(t).replace(/^#{1,4} (.*)$/gm,function(_,x){return '<b style="color:var(--texto);font-size:13px">'+x+'</b>';}).replace(/\*\*([^*]+)\*\*/g,'<b style="color:var(--texto)">$1</b>');}
+async function openEtapa(proy,etapa,rol){
+ document.getElementById('et_name').textContent=etapa+' · '+rol;
+ document.getElementById('et_sub').textContent='Proyecto '+proy;
+ var body=document.getElementById('et_body');body.innerHTML='Buscando la entrega…';
+ document.getElementById('et_pant').style.display='none';
+ document.getElementById('etmodal').classList.add('open');
+ var base=_disBase(proy),txt=null;
+ var cands=ET_ARCHIVOS[etapa]||[etapa.toLowerCase()+'-entrega.md'];
+ for(var i=0;i<cands.length&&txt===null;i++){
+  try{var r=await fetch(base+'/entregas/'+cands[i]);if(r.ok)txt=await r.text();}catch(e){}
+ }
+ body.innerHTML=txt?_mdLite(txt):'La entrega todavía no se subió al panel.<br><br>En la compu, en la carpeta jaque, corré:<br><b>powershell -ExecutionPolicy Bypass -File cable\\subir.ps1</b><br><br>y volvé a tocar la etapa.';
+ if(etapa==='JUN'||etapa==='MAYA'){
+  try{
+   var c=_creds();
+   var lr=await fetch(c.url+'/storage/v1/object/list/diseno',{method:'POST',headers:{apikey:c.anon,Authorization:'Bearer '+c.anon,'Content-Type':'application/json'},body:JSON.stringify({prefix:proy.toLowerCase()+'/pantallas',limit:100})});
+   var files=lr.ok?await lr.json():[];
+   files=(files||[]).filter(function(f){return /\.html$/i.test(f.name);});
+   if(files.length){
+    document.getElementById('et_pant').style.display='block';
+    document.getElementById('et_pantlist').innerHTML=files.map(function(f){return '<button class="mbtn-gh" style="padding:8px 14px;font-size:12px" onclick="openPantalla(\''+_esc(proy)+'\',\''+_esc(f.name)+'\')">'+_esc(f.name.replace('.html',''))+'</button>';}).join('');
+   }
+  }catch(e){}
+ }
+}
+/* --- visor + editor --- */
+var _edOn=false,_edDoc=null,_edSel=null,_edProy='',_edPant='',_edDrag=null;
+async function openPantalla(proy,archivo){
+ _edProy=proy;_edPant=archivo;_edOn=false;_edSel=null;
+ document.getElementById('scr_name').textContent=archivo.replace('.html','');
+ document.getElementById('scr_edit').textContent='✏ Editar';
+ document.getElementById('scrmodal').classList.add('open');
+ var base=_disBase(proy);
+ try{
+  var r=await fetch(base+'/pantallas/'+archivo);
+  var html=await r.text();
+  if(!/<base /i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
+  var fr=document.getElementById('scr_frame');
+  fr.srcdoc=html;
+  fr.onload=function(){_edDoc=fr.contentDocument;_edPrep();};
+ }catch(e){document.getElementById('scr_hint').textContent='No se pudo cargar la pantalla.';}
+}
+function _edPrep(){
+ if(!_edDoc)return;
+ _edDoc.addEventListener('click',function(e){
+  if(!_edOn)return;e.preventDefault();e.stopPropagation();
+  var el=e.target;if(el===_edDoc.body||el===_edDoc.documentElement)return;
+  if(_edSel)_edSel.style.outline='';
+  _edSel=el;el.style.outline='2px dashed #35D29A';
+ },true);
+ var start=function(e){
+  if(!_edOn||!_edSel)return;var t=e.target;
+  if(t!==_edSel&&!_edSel.contains(t))return;
+  e.preventDefault();
+  var p=e.touches?e.touches[0]:e;
+  _edDrag={x:p.clientX,y:p.clientY,dx:parseFloat(_edSel.dataset.cdx||0),dy:parseFloat(_edSel.dataset.cdy||0)};
+ };
+ var move=function(e){
+  if(!_edDrag||!_edSel)return;e.preventDefault();
+  var p=e.touches?e.touches[0]:e;
+  var dx=_edDrag.dx+(p.clientX-_edDrag.x),dy=_edDrag.dy+(p.clientY-_edDrag.y);
+  _edSel.dataset.cdx=dx;_edSel.dataset.cdy=dy;_edSel.dataset.ced='1';
+  _edSel.style.transform='translate('+dx+'px,'+dy+'px)';
+ };
+ var end=function(){_edDrag=null;};
+ _edDoc.addEventListener('mousedown',start,true);_edDoc.addEventListener('mousemove',move,true);_edDoc.addEventListener('mouseup',end,true);
+ _edDoc.addEventListener('touchstart',start,{capture:true,passive:false});_edDoc.addEventListener('touchmove',move,{capture:true,passive:false});_edDoc.addEventListener('touchend',end,true);
+}
+function edToggle(){_edOn=!_edOn;document.getElementById('scr_edit').textContent=_edOn?'✏ Editando…':'✏ Editar';document.getElementById('scr_hint').textContent=_edOn?'Tocá un elemento para elegirlo, arrastralo para moverlo, A+/A− para la letra. Al final: Guardar.':'Mirá la pantalla. Con ✏ Editar: tocá un elemento, arrastralo para moverlo, A+/A− para la letra.';if(!_edOn&&_edSel){_edSel.style.outline='';_edSel=null;}}
+function edFont(f){
+ if(!_edOn||!_edSel){alert('Primero tocá ✏ Editar y elegí un elemento.');return;}
+ var w=document.getElementById('scr_frame').contentWindow;
+ var cur=parseFloat(w.getComputedStyle(_edSel).fontSize)||14;
+ var nv=Math.max(7,Math.round(cur*f*10)/10);
+ _edSel.style.fontSize=nv+'px';_edSel.dataset.cfs=nv;_edSel.dataset.ced='1';
+}
+function _edPath(el){
+ var parts=[];var cur=el;
+ while(cur&&cur.tagName&&cur.tagName!=='BODY'){
+  var tag=cur.tagName.toLowerCase(),idx=1,sib=cur;
+  while((sib=sib.previousElementSibling))if(sib.tagName===cur.tagName)idx++;
+  parts.unshift(tag+':nth-of-type('+idx+')');cur=cur.parentElement;
+ }
+ return 'body > '+parts.join(' > ');
+}
+async function edGuardar(){
+ if(!_edDoc||!_supa)return;
+ var eds=_edDoc.querySelectorAll('[data-ced="1"]');
+ if(!eds.length){alert('No hiciste cambios todavía.');return;}
+ var cambios=[];
+ eds.forEach(function(el){
+  cambios.push({elemento:_edPath(el),texto:(el.textContent||'').trim().slice(0,60),mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null});
+ });
+ var nota=prompt('Nota para los agentes (opcional). Ej: "el botón va más abajo y más chico"','')||'';
+ var r=await _supa.from('ajustes').insert({proyecto:_edProy,pantalla:_edPant,cambios:cambios,nota:nota});
+ if(r.error){alert('No se pudo guardar: '+r.error.message);return;}
+ alert('Guardado ✔ '+cambios.length+' cambio(s). Los agentes lo leen antes de seguir.');
+ eds.forEach(function(el){delete el.dataset.ced;});
 }
 function openIncNew(){if(!_supa){initInc();return;}var d=document.getElementById('nf_done');if(d)d.innerHTML='';['nf_nombre','nf_idea','nf_cliente'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});nfTipo('propio');document.getElementById('incnew').classList.add('open');setTimeout(function(){var n=document.getElementById('nf_nombre');if(n)n.focus();},50);}
 function nfTipo(t){_nftipo=t;document.getElementById('nf_propio').classList.toggle('on',t==='propio');document.getElementById('nf_cliente_b').classList.toggle('on',t==='cliente');document.getElementById('nf_cli_wrap').style.display=t==='cliente'?'block':'none';}
