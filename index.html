@@ -1490,7 +1490,7 @@ function _edPath(el){
 async function edGuardar(){
  if(!_edDoc||!_supa)return;
  var eds=_edDoc.querySelectorAll('[data-ced="1"]');
- if(!eds.length){alert('No hiciste cambios todavía.');return;}
+ if(!eds.length){alert('✔ Todo guardado. No hay cambios nuevos desde tu último Guardar.');return;}
  var cambios=[];
  var vw=_edDoc.defaultView;
  eds.forEach(function(el){
