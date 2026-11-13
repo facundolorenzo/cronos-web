@@ -1124,7 +1124,7 @@ async function openPantalla(proy,archivo){
   var r=await fetch(base+'/pantallas/'+archivo);
   var html=await r.text();
   if(!/<base /i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
-  html=html.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
+  html=html.replace(/<\/head>/i,'<style id="cr-noscroll">::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
   var fr=document.getElementById('scr_frame');
   fr.srcdoc=html;
   fr.onload=function(){_edDoc=fr.contentDocument;_edPrep();};
@@ -1436,8 +1436,21 @@ async function edGuardar(){
  var nota=prompt('Nota opcional (el antes y el después ya se registran solos). Si querés, contá la intención: "más aire arriba"','')||'';
  var r=await _supa.from('ajustes').insert({proyecto:_edProy,pantalla:_edPant,cambios:cambios,nota:nota});
  if(r.error){alert('No se pudo guardar: '+r.error.message);return;}
- alert('Guardado ✔ '+cambios.length+' cambio(s). Los agentes lo leen antes de seguir.');
+ /* además, la pantalla queda guardada como la dejaste: al volver a entrar seguís desde acá */
+ var ok2=false,err2='';
+ try{
+  _edDeselect();_edGuiasOff();
+  var clon=_edDoc.documentElement.cloneNode(true);
+  clon.querySelectorAll('.cr-h,.cr-tag,.cr-gv,.cr-gh,#cr-noscroll').forEach(function(n){n.parentNode.removeChild(n);});
+  clon.querySelectorAll('base').forEach(function(b){if((b.getAttribute('href')||'').indexOf('/storage/v1/object')>=0)b.parentNode.removeChild(b);});
+  clon.querySelectorAll('[contenteditable]').forEach(function(n){n.removeAttribute('contenteditable');});
+  clon.querySelectorAll('[data-ced],[data-cr0],[data-ctxt0],[data-ctxt]').forEach(function(n){n.removeAttribute('data-ced');n.removeAttribute('data-cr0');n.removeAttribute('data-ctxt0');n.removeAttribute('data-ctxt');});
+  var htmlFin='<!doctype html>\n'+clon.outerHTML;
+  var up=await _supa.storage.from('diseno').upload(_edProy.toLowerCase()+'/pantallas/'+_edPant,new Blob([htmlFin],{type:'text/html'}),{upsert:true,contentType:'text/html'});
+  if(up.error)err2=up.error.message;else ok2=true;
+ }catch(e9){err2=e9.message||String(e9);}
  eds.forEach(function(el){delete el.dataset.ced;});
+ alert('Guardado ✔ '+cambios.length+' cambio(s) para los agentes.'+(ok2?' La pantalla quedó guardada como la dejaste.':' OJO: la pantalla no se pudo guardar aparte ('+err2+').'));
 }
 function openIncNew(){if(!_supa){initInc();return;}var d=document.getElementById('nf_done');if(d)d.innerHTML='';['nf_nombre','nf_idea','nf_cliente'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});nfTipo('propio');document.getElementById('incnew').classList.add('open');setTimeout(function(){var n=document.getElementById('nf_nombre');if(n)n.focus();},50);}
 function nfTipo(t){_nftipo=t;document.getElementById('nf_propio').classList.toggle('on',t==='propio');document.getElementById('nf_cliente_b').classList.toggle('on',t==='cliente');document.getElementById('nf_cli_wrap').style.display=t==='cliente'?'block':'none';}
