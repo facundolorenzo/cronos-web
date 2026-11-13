@@ -639,6 +639,8 @@ body{background:#080a0b}
         <button class="mbtn-gh" id="scr_multi" onclick="edAgrupar()" style="padding:7px 12px;font-size:11.5px">⬚ Agrupar</button>
         <button class="mbtn-gh" onclick="edDeshacer()" style="padding:7px 12px;font-size:11.5px">↩ Deshacer</button>
         <button class="mbtn-gh" onclick="edBorrar()" style="padding:7px 12px;font-size:11.5px">🗑 Borrar</button>
+        <button class="mbtn-gh" onclick="edAgregar()" style="padding:7px 12px;font-size:11.5px">🖼 Agregar</button>
+        <input type="file" id="scr_file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="edArchivo(this)">
         <button class="mbtn-gh" onclick="edFont(1.12)" style="padding:7px 12px;font-size:11.5px">A+</button>
         <button class="mbtn-gh" onclick="edFont(0.89)" style="padding:7px 12px;font-size:11.5px">A−</button>
       </span>
@@ -1171,6 +1173,7 @@ function _edSnap(op){
 function edDeshacer(){
  var h=_edHist.pop();
  if(!h){alert('No hay nada para deshacer.');return;}
+ if(h.nuevo){try{h.nuevo.parentNode.removeChild(h.nuevo);}catch(e){}_edDeselect();return;}
  h.items.forEach(function(it){
   var el=it.el;
   ['cdx','cdy','cs','cw','ch','cfs','ctxt','ced','cdel'].forEach(function(k){if(it.d[k]===undefined)delete el.dataset[k];else el.dataset[k]=it.d[k];});
@@ -1180,6 +1183,25 @@ function edDeshacer(){
  _edHandles();
 }
 function _hintEd(){return 'Tocá = elegir el bloque · click AFUERA = soltar · esquinas = escalar todo junto · bordes = ancho/alto · ⬚ Agrupar = elegir varios y moverlos juntos · ↩ Deshacer · doble click en un texto = escribir.';}
+function edAgregar(){if(!_edOn){alert('Primero tocá ✏ Editar.');return;}document.getElementById('scr_file').click();}
+async function edArchivo(inp){
+ var f=inp.files&&inp.files[0];inp.value='';
+ if(!f||!_edDoc||!_supa)return;
+ var nom=f.name.toLowerCase().replace(/[^a-z0-9._-]/g,'-');
+ var ruta=_edProy.toLowerCase()+'/agregados/'+Date.now()+'-'+nom;
+ var up=await _supa.storage.from('diseno').upload(ruta,f,{upsert:true,contentType:f.type||'image/png'});
+ if(up.error){alert('No se pudo subir la imagen: '+up.error.message);return;}
+ var c=_creds(),url=c.url+'/storage/v1/object/public/diseno/'+ruta;
+ var img=_edDoc.createElement('img');
+ img.src=url;img.alt=nom;
+ var W=_edDoc.documentElement.clientWidth||430;
+ img.style.cssText='position:absolute;left:'+Math.round(W/2-80)+'px;top:'+Math.round((_edDoc.defaultView.scrollY||0)+340)+'px;width:160px;z-index:50';
+ img.dataset.cnew='1';img.dataset.ced='1';img.dataset.cnom=nom;img.dataset.csrc=url;
+ _edDoc.body.appendChild(img);
+ _edHist.push({op:'agregar',t:Date.now(),items:[],nuevo:img});
+ img.onload=function(){_edSelect(img);};
+ _edSelect(img);
+}
 function edBorrar(){
  if(!_edOn||!_edSels.length){alert('Primero elegí qué borrar.');return;}
  _edSnap('borrar');
@@ -1427,11 +1449,12 @@ async function edGuardar(){
    if(Math.abs(desp.w-antes.w)>1||Math.abs(desp.h-antes.h)>1)partes.push('tamaño de '+antes.w+'×'+antes.h+' a '+desp.w+'×'+desp.h);
    if(antes.f&&desp.f&&Math.abs(desp.f-antes.f)>0.5)partes.push('letra de '+antes.f+'px a '+desp.f+'px');
   }
-  if(el.dataset.cdel)partes=['se ELIMINA de la pantalla'];
+  if(el.dataset.cnew)partes=['ELEMENTO NUEVO agregado por Facu: imagen "'+(el.dataset.cnom||'')+'" montada en ('+desp.x+', '+desp.y+'), tamaño '+desp.w+'×'+desp.h+'. Descargar el archivo de '+(el.dataset.csrc||'')+' a diseno/agregados/ y montarlo TAL CUAL en el diseño real'];
+  else if(el.dataset.cdel)partes=['se ELIMINA de la pantalla'];
   else if(el.dataset.ctxt)partes.push('texto cambiado de "'+t0+'" a "'+el.dataset.ctxt+'"');
   var _W=(_edDoc.documentElement&&_edDoc.documentElement.clientWidth)||430;
   if(Math.abs((desp.x+desp.w/2)-_W/2)<=5)partes.push('quedó CENTRADO horizontal en la pantalla');
-  cambios.push({elemento:_edPath(el),detalle:nom+' "'+t0+'": '+(partes.join('; ')||'ajustado'),antes:antes,despues:desp,texto:t0,mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null,ancho_px:el.dataset.cw?parseFloat(el.dataset.cw):null,alto_px:el.dataset.ch?parseFloat(el.dataset.ch):null,escala:el.dataset.cs?parseFloat(el.dataset.cs):null,borrado:el.dataset.cdel?true:null,texto_nuevo:el.dataset.ctxt||null});
+  cambios.push({elemento:_edPath(el),detalle:nom+' "'+t0+'": '+(partes.join('; ')||'ajustado'),antes:antes,despues:desp,texto:t0,mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null,ancho_px:el.dataset.cw?parseFloat(el.dataset.cw):null,alto_px:el.dataset.ch?parseFloat(el.dataset.ch):null,escala:el.dataset.cs?parseFloat(el.dataset.cs):null,borrado:el.dataset.cdel?true:null,agregado:el.dataset.cnew?{archivo:el.dataset.cnom||'',url:el.dataset.csrc||''}:null,texto_nuevo:el.dataset.ctxt||null});
  });
  var nota=prompt('Nota opcional (el antes y el después ya se registran solos). Si querés, contá la intención: "más aire arriba"','')||'';
  var r=await _supa.from('ajustes').insert({proyecto:_edProy,pantalla:_edPant,cambios:cambios,nota:nota});
@@ -1444,7 +1467,7 @@ async function edGuardar(){
   clon.querySelectorAll('.cr-h,.cr-tag,.cr-gv,.cr-gh,#cr-noscroll').forEach(function(n){n.parentNode.removeChild(n);});
   clon.querySelectorAll('base').forEach(function(b){if((b.getAttribute('href')||'').indexOf('/storage/v1/object')>=0)b.parentNode.removeChild(b);});
   clon.querySelectorAll('[contenteditable]').forEach(function(n){n.removeAttribute('contenteditable');});
-  clon.querySelectorAll('[data-ced],[data-cr0],[data-ctxt0],[data-ctxt]').forEach(function(n){n.removeAttribute('data-ced');n.removeAttribute('data-cr0');n.removeAttribute('data-ctxt0');n.removeAttribute('data-ctxt');});
+  clon.querySelectorAll('[data-ced],[data-cr0],[data-ctxt0],[data-ctxt],[data-cnew]').forEach(function(n){n.removeAttribute('data-ced');n.removeAttribute('data-cr0');n.removeAttribute('data-ctxt0');n.removeAttribute('data-ctxt');n.removeAttribute('data-cnew');});
   var htmlFin='<!doctype html>\n'+clon.outerHTML;
   var up=await _supa.storage.from('diseno').upload(_edProy.toLowerCase()+'/pantallas/'+_edPant,new Blob([htmlFin],{type:'text/html'}),{upsert:true,contentType:'text/html'});
   if(up.error)err2=up.error.message;else ok2=true;
