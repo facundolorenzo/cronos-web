@@ -640,6 +640,8 @@ body{background:#080a0b}
         <button class="mbtn-gh" onclick="edDeshacer()" style="padding:7px 12px;font-size:11.5px">↩ Deshacer</button>
         <button class="mbtn-gh" onclick="edBorrar()" style="padding:7px 12px;font-size:11.5px">🗑 Borrar</button>
         <button class="mbtn-gh" onclick="edAgregar()" style="padding:7px 12px;font-size:11.5px">🖼 Agregar</button>
+        <button class="mbtn-gh" onclick="edCapa(1)" style="padding:7px 12px;font-size:11.5px">⬆ Frente</button>
+        <button class="mbtn-gh" onclick="edCapa(-1)" style="padding:7px 12px;font-size:11.5px">⬇ Atrás</button>
         <input type="file" id="scr_file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="edArchivo(this)">
         <button class="mbtn-gh" onclick="edFont(1.12)" style="padding:7px 12px;font-size:11.5px">A+</button>
         <button class="mbtn-gh" onclick="edFont(0.89)" style="padding:7px 12px;font-size:11.5px">A−</button>
@@ -1167,7 +1169,7 @@ function _edSnap(op){
  if(!_edSels.length)return;
  var top=_edHist[_edHist.length-1];
  if(top&&top.op===op&&Date.now()-top.t<800)return;
- _edHist.push({op:op,t:Date.now(),items:_edSels.map(function(el){return {el:el,d:{cdx:el.dataset.cdx,cdy:el.dataset.cdy,cs:el.dataset.cs,cw:el.dataset.cw,ch:el.dataset.ch,cfs:el.dataset.cfs,ctxt:el.dataset.ctxt,ced:el.dataset.ced,cdel:el.dataset.cdel},st:{transform:el.style.transform,width:el.style.width,height:el.style.height,fontSize:el.style.fontSize,display:el.style.display},txt:(op==='texto')?el.textContent:null};})});
+ _edHist.push({op:op,t:Date.now(),items:_edSels.map(function(el){return {el:el,d:{cdx:el.dataset.cdx,cdy:el.dataset.cdy,cs:el.dataset.cs,cw:el.dataset.cw,ch:el.dataset.ch,cfs:el.dataset.cfs,ctxt:el.dataset.ctxt,ced:el.dataset.ced,cdel:el.dataset.cdel,cz:el.dataset.cz},st:{transform:el.style.transform,width:el.style.width,height:el.style.height,fontSize:el.style.fontSize,display:el.style.display,zIndex:el.style.zIndex,position:el.style.position},txt:(op==='texto')?el.textContent:null};})});
  if(_edHist.length>40)_edHist.shift();
 }
 function edDeshacer(){
@@ -1176,8 +1178,8 @@ function edDeshacer(){
  if(h.nuevo){try{h.nuevo.parentNode.removeChild(h.nuevo);}catch(e){}_edDeselect();return;}
  h.items.forEach(function(it){
   var el=it.el;
-  ['cdx','cdy','cs','cw','ch','cfs','ctxt','ced','cdel'].forEach(function(k){if(it.d[k]===undefined)delete el.dataset[k];else el.dataset[k]=it.d[k];});
-  el.style.transform=it.st.transform;el.style.width=it.st.width;el.style.height=it.st.height;el.style.fontSize=it.st.fontSize;el.style.display=it.st.display;
+  ['cdx','cdy','cs','cw','ch','cfs','ctxt','ced','cdel','cz'].forEach(function(k){if(it.d[k]===undefined)delete el.dataset[k];else el.dataset[k]=it.d[k];});
+  el.style.transform=it.st.transform;el.style.width=it.st.width;el.style.height=it.st.height;el.style.fontSize=it.st.fontSize;el.style.display=it.st.display;el.style.zIndex=it.st.zIndex;el.style.position=it.st.position;
   if(it.txt!==null&&el.textContent!==it.txt)el.textContent=it.txt;
  });
  _edHandles();
@@ -1411,7 +1413,31 @@ function _edKeys(e){
  _edHandles();
 }
 document.addEventListener('keydown',function(e){if(document.getElementById('scrmodal').classList.contains('open'))_edKeys(e);});
-function edToggle(){_edOn=!_edOn;document.getElementById('scr_edit').textContent=_edOn?'✏ Editando…':'✏ Editar';document.getElementById('scr_tools').style.display=_edOn?'flex':'none';if(!_edOn){_edDeselect();_edMulti=false;var b=document.getElementById('scr_multi');if(b){b.style.background='';b.textContent='⬚ Agrupar';}}}
+function edToggle(){
+ _edOn=!_edOn;
+ document.getElementById('scr_edit').textContent=_edOn?'✏ Editando…':'✏ Editar';
+ document.getElementById('scr_tools').style.display=_edOn?'flex':'none';
+ /* en modo editar, TODO se puede tocar (hasta lo decorativo con pointer-events none) */
+ try{
+  if(_edDoc){
+   var pst=_edDoc.getElementById('cr-ptr');
+   if(_edOn&&!pst){pst=_edDoc.createElement('style');pst.id='cr-ptr';pst.textContent='*{pointer-events:auto!important}';(_edDoc.head||_edDoc.body).appendChild(pst);}
+   if(!_edOn&&pst)pst.parentNode.removeChild(pst);
+  }
+ }catch(e){}
+ if(!_edOn){_edDeselect();_edMulti=false;var b=document.getElementById('scr_multi');if(b){b.style.background='';b.textContent='⬚ Agrupar';}}
+}
+function edCapa(d){
+ if(!_edOn||!_edSels.length){alert('Primero elegí un elemento.');return;}
+ _edSnap('capa');
+ _edSels.forEach(function(el){
+  var w=_edDoc.defaultView,cs=w.getComputedStyle(el);
+  if(cs.position==='static')el.style.position='relative';
+  var z=parseInt(el.style.zIndex||cs.zIndex,10);if(isNaN(z))z=0;
+  z+=d;el.style.zIndex=z;el.dataset.cz=z;el.dataset.ced='1';
+ });
+ _edHandles();
+}
 function edFont(f){
  if(!_edOn||!_edSels.length){alert('Primero tocá ✏ Editar y elegí un elemento.');return;}
  _edSnap('letra');_edSels.forEach(_edBase);
@@ -1452,6 +1478,7 @@ async function edGuardar(){
   if(el.dataset.cnew)partes=['ELEMENTO NUEVO agregado por Facu: imagen "'+(el.dataset.cnom||'')+'" montada en ('+desp.x+', '+desp.y+'), tamaño '+desp.w+'×'+desp.h+'. Descargar el archivo de '+(el.dataset.csrc||'')+' a diseno/agregados/ y montarlo TAL CUAL en el diseño real'];
   else if(el.dataset.cdel)partes=['se ELIMINA de la pantalla'];
   else if(el.dataset.ctxt)partes.push('texto cambiado de "'+t0+'" a "'+el.dataset.ctxt+'"');
+  if(el.dataset.cz)partes.push('orden de capa: pasa '+(parseInt(el.dataset.cz,10)>0?'AL FRENTE (por encima de lo que lo tapaba)':'ATRÁS')+' — z '+el.dataset.cz);
   var _W=(_edDoc.documentElement&&_edDoc.documentElement.clientWidth)||430;
   if(Math.abs((desp.x+desp.w/2)-_W/2)<=5)partes.push('quedó CENTRADO horizontal en la pantalla');
   cambios.push({elemento:_edPath(el),detalle:nom+' "'+t0+'": '+(partes.join('; ')||'ajustado'),antes:antes,despues:desp,texto:t0,mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null,ancho_px:el.dataset.cw?parseFloat(el.dataset.cw):null,alto_px:el.dataset.ch?parseFloat(el.dataset.ch):null,escala:el.dataset.cs?parseFloat(el.dataset.cs):null,borrado:el.dataset.cdel?true:null,agregado:el.dataset.cnew?{archivo:el.dataset.cnom||'',url:el.dataset.csrc||''}:null,texto_nuevo:el.dataset.ctxt||null});
