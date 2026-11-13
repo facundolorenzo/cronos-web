@@ -347,6 +347,8 @@ body{background:#080a0b}
 .fab-row.wait .nm,.fab-row.wait .msg{color:var(--amber)}
 .fab-badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;padding:3px 8px;border-radius:99px;background:rgba(224,166,78,.16);color:var(--amber);flex:none}
 @keyframes fabpulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+#scrmodal .modal-card{scrollbar-width:none}
+#scrmodal .modal-card::-webkit-scrollbar{width:0;height:0}
 </style>
 </head>
 <body>
@@ -1092,7 +1094,7 @@ async function openFlujo(){
    var r=await fetch(base+'/pantallas/'+encodeURIComponent(f.name));
    var html=await r.text();
    if(!/<base /i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
-   html=html.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html,body{overflow:hidden!important;height:100%!important;scrollbar-width:none!important}</style></head>');
+   html=html.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
    var fr=document.getElementById('fl_f_'+i);if(fr)fr.srcdoc=html;
   }catch(e){}
  });
@@ -1121,7 +1123,7 @@ async function openPantalla(proy,archivo){
   var r=await fetch(base+'/pantallas/'+archivo);
   var html=await r.text();
   if(!/<base /i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
-  html=html.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html,body{overflow:hidden!important;height:100%!important;scrollbar-width:none!important}</style></head>');
+  html=html.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
   var fr=document.getElementById('scr_frame');
   fr.srcdoc=html;
   fr.onload=function(){_edDoc=fr.contentDocument;_edPrep();};
@@ -1300,6 +1302,12 @@ function _edPrep(){
   }
  },true);
  _edDoc.addEventListener('keydown',_edKeys,true);
+ /* modo mirar: arrastrás la pantalla y se desliza, como un dedo en el celular */
+ var pan=null;
+ _edDoc.addEventListener('mousedown',function(e){if(_edOn)return;pan={y:e.clientY,sy:_edDoc.defaultView.scrollY||_edDoc.documentElement.scrollTop};},true);
+ _edDoc.addEventListener('mousemove',function(e){if(_edOn||!pan)return;e.preventDefault();var ny=pan.sy-(e.clientY-pan.y);_edDoc.defaultView.scrollTo(0,ny);},true);
+ _edDoc.addEventListener('mouseup',function(){pan=null;},true);
+ _edDoc.addEventListener('mouseleave',function(){pan=null;},true);
 }
 /* flechas = mover fino (1px; con Shift, 10px) */
 function _edKeys(e){
