@@ -784,7 +784,7 @@ function renderIncs(){
   var et=x.etapa||0;
   var badge=et>=4?'<span class="ec go">'+ETAPAS[4]+'</span>':(et===2?'<span class="ec esp">Tu lectura</span>':'<span class="ec">'+ETAPAS[et]+'</span>');
   var sub=x.tipo==='cliente'?('Cliente de <b>'+_esc(x.cliente||'—')+'</b>'):'Idea <b>propia</b>';
-  return '<div class="card rowcard" onclick="openIncDB(\''+x.id+'\')"><div class="rc-top"><div><div class="rc-nm">'+_esc(x.nombre)+'</div><div class="rc-sub">'+sub+'</div></div>'+badge+'</div>'+_stepsHTML(et)+'<div class="rc-say">'+_esc(x.nota||'')+'</div></div>';
+  return '<div class="card rowcard" onclick="openIncDB(\''+x.id+'\')"><div class="rc-top"><div><div class="rc-nm">'+_esc(x.nombre)+'</div><div class="rc-sub">'+sub+'</div></div>'+badge+'</div>'+_stepsHTML(et)+_fabStripHTML(x.nombre)+'<div class="rc-say">'+_esc(x.nota||'')+'</div></div>';
  }).join('');
 }
 /* --- conexión a TU Supabase: las claves las pegás vos en la app y quedan en tu navegador (no se mandan a nadie) --- */
@@ -809,14 +809,33 @@ async function fetchIncs(){
  _incs=r.data||[];renderIncs();
 }
 /* --- CABLE: avisos en vivo de la fábrica (tabla eventos) --- */
-var _evTimer=null;
+var _evTimer=null,_evs=[];
+var FAB_ETAPAS=['MATEO','HAROLD','BRIAN','MARCA','MAYA','JUN'];
+var FAB_TXT={trabajando:'está trabajando',esperando_ok:'TE ESPERA — entrá a firmar',aprobado:'aprobado por vos',terminado:'terminado',error:'tuvo un problema'};
+function _fabStripHTML(proyecto){
+ var evs=_evs.filter(function(e){return e.proyecto===proyecto;});
+ if(!evs.length)return '';
+ var st={};evs.forEach(function(e){if(!(e.etapa in st))st[e.etapa]=e.estado;});
+ var lastIdx=-1;FAB_ETAPAS.forEach(function(n,i){if(st[n])lastIdx=Math.max(lastIdx,i);});
+ if(st['INCUBACION']==='terminado')lastIdx=FAB_ETAPAS.length;
+ var chips=FAB_ETAPAS.map(function(n,i){
+  var s=st[n],cls='';
+  if(s==='aprobado'||s==='terminado')cls='done';
+  else if(s==='trabajando'||s==='esperando_ok')cls='now';
+  else if(!s&&i<lastIdx)cls='done';
+  return '<div class="step '+cls+'"><span class="sd"></span><span class="sl">'+n+(s==='esperando_ok'?' ⚠':'')+'</span></div>';
+ }).join('');
+ var last=evs[0];
+ var head='<div style="margin-top:12px;padding:10px 12px;border:1px solid rgba(94,234,164,.25);border-radius:10px;font-size:12.5px;line-height:1.5"><b style="color:var(--esm,#5eeaa4)">FÁBRICA · AHORA:</b> <b>'+_esc(last.etapa)+'</b> '+_esc(FAB_TXT[last.estado]||last.estado)+(last.mensaje?'<br><span style="color:var(--mut)">'+_esc(last.mensaje)+'</span>':'')+'</div>';
+ return head+'<div class="steps" style="margin-top:8px">'+chips+'</div>';
+}
 function _evBadge(estado){var m={trabajando:['Trabajando',''],esperando_ok:['Te espera','esp'],aprobado:['Aprobado','go'],terminado:['Terminado','go'],error:['Problema','esp']};var b=m[estado]||[estado,''];return '<span class="ec '+b[1]+'">'+_esc(b[0])+'</span>';}
 function _evAgo(ts){var s=(Date.now()-new Date(ts).getTime())/1000;if(s<60)return 'recién';var m=Math.floor(s/60);if(m<60)return 'hace '+m+' min';var h=Math.floor(m/60);if(h<24)return 'hace '+h+' h';return 'hace '+Math.floor(h/24)+' días';}
 async function fetchEvs(){
  if(!_supa)return;var el=document.getElementById('evlist');if(!el)return;
  var r=await _supa.from('eventos').select('*').order('created_at',{ascending:false}).limit(12);
  if(r.error){el.innerHTML='<div class="inc-empty">El cable todavía no está conectado (falta la tabla <b>eventos</b>). Corré <b>cable/eventos.sql</b> en Supabase y recargá.</div>';return;}
- var evs=r.data||[];
+ var evs=r.data||[];_evs=evs;renderIncs();
  if(!evs.length){el.innerHTML='<div class="inc-empty">Sin avisos todavía. Cuando un agente trabaje, lo ves acá.</div>';return;}
  el.innerHTML=evs.map(function(e){return '<div class="card rowcard" style="cursor:default"><div class="rc-top"><div><div class="rc-nm">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="rc-sub">'+_evAgo(e.created_at)+'</div></div>'+_evBadge(e.estado)+'</div>'+(e.mensaje?'<div class="rc-say">'+_esc(e.mensaje)+'</div>':'')+'</div>';}).join('');
 }
