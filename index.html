@@ -573,7 +573,8 @@ body{background:#080a0b}
     <div class="msec"><div class="mt">El director · hablá desde acá</div>
       <div id="i_chat" style="max-height:220px;overflow:auto;font-size:12.5px;line-height:1.55;display:flex;flex-direction:column;gap:8px;margin:8px 0"></div>
       <textarea id="i_resp" placeholder="Respondele al director… (ej: A en todo, firmo las tres etapas)" style="width:100%;min-height:64px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--texto);font-size:12.5px;padding:10px;font-family:inherit"></textarea>
-      <div class="mbtns2" style="margin-top:8px"><button class="mbtn-gh" onclick="dirAprobar()">✅ Aprobar todo</button><button class="mbtn-pri" onclick="dirEnviar()">Enviar al director</button></div>
+      <button onclick="dirAprobar()" style="width:100%;margin-top:10px;padding:15px;border:0;border-radius:12px;background:linear-gradient(135deg,#35D29A,#2BAF80);color:#06130d;font-size:14.5px;font-weight:700;letter-spacing:.03em;cursor:pointer;font-family:inherit">✅ APROBAR Y AVANZAR</button>
+      <div class="mbtns2" style="margin-top:8px"><button class="mbtn-pri" onclick="dirEnviar()" style="width:100%">Enviar mensaje al director</button></div>
     </div>
     <div class="mbtns2"><button class="mbtn-gh" onclick="incPrev()">← Atrás</button><button class="mbtn-pri" id="i_next" onclick="incNext()">Avanzar etapa →</button></div>
     <div style="text-align:center;margin-top:12px"><button class="lnk-del" onclick="incBorrar()">Borrar idea</button></div>
@@ -945,7 +946,7 @@ async function dirEnviar(){
  if(r.error){alert('No se pudo enviar: '+r.error.message);return;}
  t.value='';cargarChat(_chatProy);
 }
-function dirAprobar(){document.getElementById('i_resp').value='Apruebo todo con tus recomendaciones. Firmá, anotá las fechas y seguí.';dirEnviar();}
+function dirAprobar(){if(!confirm('¿Aprobar esta etapa y que el proyecto avance?'))return;document.getElementById('i_resp').value='APRUEBO. Antes de firmar: leé mis ajustes del panel con cable/leer-ajustes.ps1 y aplicalos si hay. Después firmá con fecha, subí todo con cable/subir.ps1 y avanzá a lo que sigue.';dirEnviar();}
 /* --- SUBPANTALLA DE ETAPA: entrega + pantallas + editor simple --- */
 var ET_ARCHIVOS={MATEO:['validacion-mateo.md','mateo-entrega.md'],HAROLD:['harold-entrega.md'],BRIAN:['brian-entrega.md'],MARCA:['marca-entrega.md'],MAYA:['maya-entrega.md','ux-entrega.md'],JUN:['jun-entrega.md','ui-entrega.md']};
 function _disBase(proy){var c=_creds();return c.url+'/storage/v1/object/public/diseno/'+proy.toLowerCase();}
