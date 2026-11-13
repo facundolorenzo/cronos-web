@@ -633,6 +633,7 @@ body{background:#080a0b}
 <div class="modal" id="scrmodal">
   <div class="modal-card" style="max-width:520px;padding:14px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <button class="mclose" style="position:static;flex:none" onclick="scrCerrar()" title="Guardar y volver">←</button>
       <b id="scr_name" style="font-size:13px;flex:1"></b>
       <button class="mbtn-gh" id="scr_edit" onclick="edToggle()" style="padding:7px 12px;font-size:11.5px">✏ Editar</button>
       <span id="scr_tools" style="display:none;gap:8px;align-items:center">
@@ -648,7 +649,6 @@ body{background:#080a0b}
         <button class="mbtn-gh" onclick="edFont(0.89)" style="padding:7px 12px;font-size:11.5px">A−</button>
       </span>
       <button class="mbtn-pri" onclick="edGuardar()" style="padding:7px 12px;font-size:11.5px">Guardar</button>
-      <button class="mclose" style="position:static" onclick="scrCerrar()">✕</button>
     </div>
     <div id="scr_zone" style="display:flex;justify-content:center">
       <div id="scr_wrap" style="overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:20px;background:#111;box-shadow:0 10px 30px rgba(0,0,0,.5)">
@@ -1435,8 +1435,11 @@ function _edKeys(e){
 }
 document.addEventListener('keydown',function(e){if(document.getElementById('scrmodal').classList.contains('open'))_edKeys(e);});
 function _edSinGuardar(){try{return _edDoc&&_edDoc.querySelector('[data-ced="1"]');}catch(e){return false;}}
-function scrCerrar(){
- if(_edSinGuardar()&&!confirm('⚠ Tenés cambios SIN GUARDAR en esta pantalla. ¿Cerrar igual y perderlos?\n\nTocá Cancelar y después GUARDAR para no perder nada.'))return;
+async function scrCerrar(){
+ if(_edSinGuardar()){
+  await edGuardar(true);
+  if(_edSinGuardar()&&!confirm('⚠ No se pudieron guardar tus cambios. ¿Salir igual y perderlos?'))return;
+ }
  closeModal('scrmodal');
 }
 window.addEventListener('beforeunload',function(e){
@@ -1505,10 +1508,10 @@ function _edPath(el){
  }
  return 'body > '+parts.join(' > ');
 }
-async function edGuardar(){
+async function edGuardar(auto){
  if(!_edDoc||!_supa)return;
  var eds=_edDoc.querySelectorAll('[data-ced="1"]');
- if(!eds.length){alert('✔ Todo guardado. No hay cambios nuevos desde tu último Guardar.');return;}
+ if(!eds.length){if(!auto)alert('✔ Todo guardado. No hay cambios nuevos desde tu último Guardar.');return;}
  var cambios=[];
  var vw=_edDoc.defaultView;
  eds.forEach(function(el){
@@ -1532,9 +1535,9 @@ async function edGuardar(){
   if(Math.abs((desp.x+desp.w/2)-_W/2)<=5)partes.push('quedó CENTRADO horizontal en la pantalla');
   cambios.push({elemento:_edPath(el),detalle:nom+' "'+t0+'": '+(partes.join('; ')||'ajustado'),antes:antes,despues:desp,texto:t0,mover_x:parseFloat(el.dataset.cdx||0),mover_y:parseFloat(el.dataset.cdy||0),letra_px:el.dataset.cfs?parseFloat(el.dataset.cfs):null,ancho_px:el.dataset.cw?parseFloat(el.dataset.cw):null,alto_px:el.dataset.ch?parseFloat(el.dataset.ch):null,escala:el.dataset.cs?parseFloat(el.dataset.cs):null,borrado:el.dataset.cdel?true:null,agregado:el.dataset.cnew?{archivo:el.dataset.cnom||'',url:el.dataset.csrc||''}:null,duplicado:el.dataset.cdup?true:null,rotacion:el.dataset.crot?parseFloat(el.dataset.crot):null,texto_nuevo:el.dataset.ctxt||null});
  });
- var nota=prompt('Nota opcional (el antes y el después ya se registran solos). Si querés, contá la intención: "más aire arriba"','')||'';
+ var nota=auto?'(guardado automático al salir)':(prompt('Nota opcional (el antes y el después ya se registran solos). Si querés, contá la intención: "más aire arriba"','')||'');
  var r=await _supa.from('ajustes').insert({proyecto:_edProy,pantalla:_edPant,cambios:cambios,nota:nota});
- if(r.error){alert('No se pudo guardar: '+r.error.message);return;}
+ if(r.error){if(!auto)alert('No se pudo guardar: '+r.error.message);return;}
  /* además, la pantalla queda guardada como la dejaste: al volver a entrar seguís desde acá */
  var ok2=false,err2='';
  try{
@@ -1548,8 +1551,8 @@ async function edGuardar(){
   var up=await _supa.storage.from('diseno').upload(_edProy.toLowerCase()+'/pantallas/'+_edPant,new Blob([htmlFin],{type:'text/html'}),{upsert:true,contentType:'text/html',cacheControl:'0'});
   if(up.error)err2=up.error.message;else ok2=true;
  }catch(e9){err2=e9.message||String(e9);}
- eds.forEach(function(el){delete el.dataset.ced;});
- alert('Guardado ✔ '+cambios.length+' cambio(s) para los agentes.'+(ok2?' La pantalla quedó guardada como la dejaste.':' OJO: la pantalla no se pudo guardar aparte ('+err2+').'));
+ if(ok2)eds.forEach(function(el){delete el.dataset.ced;});
+ if(!auto)alert('Guardado ✔ '+cambios.length+' cambio(s) para los agentes.'+(ok2?' La pantalla quedó guardada como la dejaste.':' OJO: la pantalla no se pudo guardar aparte ('+err2+').'));
 }
 function openIncNew(){if(!_supa){initInc();return;}var d=document.getElementById('nf_done');if(d)d.innerHTML='';['nf_nombre','nf_idea','nf_cliente'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});nfTipo('propio');document.getElementById('incnew').classList.add('open');setTimeout(function(){var n=document.getElementById('nf_nombre');if(n)n.focus();},50);}
 function nfTipo(t){_nftipo=t;document.getElementById('nf_propio').classList.toggle('on',t==='propio');document.getElementById('nf_cliente_b').classList.toggle('on',t==='cliente');document.getElementById('nf_cli_wrap').style.display=t==='cliente'?'block':'none';}
