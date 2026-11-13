@@ -998,13 +998,22 @@ async function openFlujo(){
   var chip=ts.length?'<span style="font-size:9.5px;background:rgba(53,210,154,.12);border:1px solid rgba(53,210,154,.45);color:var(--esmb);padding:3px 9px;border-radius:99px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis">'+_esc(ts[0].boton)+(ts.length>1?' +'+(ts.length-1):'')+'</span>':'';
   return '<div style="flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;max-width:100px">'+chip+'<span style="color:'+(ts.length?'var(--esm)':'var(--mut2)')+';font-size:19px;line-height:1">→</span></div>';
  }
+ var visto=0,vkey='cronos_visto_'+_pantProy.toLowerCase();
+ try{visto=parseInt(localStorage.getItem(vkey)||'0',10)||0;}catch(e){}
  document.getElementById('fl_list').innerHTML=_pantFiles.map(function(f,i){
   var nom=f.name.replace('.html','');
-  var cel='<div style="flex:none;text-align:center"><div style="font-size:10px;color:var(--mut);margin-bottom:5px;font-family:\'JetBrains Mono\',monospace">'+(i+1)+' · '+_esc(nom)+'</div>'
-   +'<div onclick="closeModal(\'flujomodal\');openPantalla(\''+_esc(_pantProy)+'\',\''+_esc(f.name)+'\')" style="width:'+(390*k)+'px;height:'+(844*k)+'px;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:10px;cursor:zoom-in;background:#111">'
+  var cre=f.created_at?new Date(f.created_at).getTime():0;
+  var upd=f.updated_at?new Date(f.updated_at).getTime():cre;
+  var nueva=visto&&cre>visto,cambio=visto&&!nueva&&upd>visto;
+  var borde=nueva?'2px solid var(--esmb);box-shadow:0 0 14px rgba(94,235,174,.35)':(cambio?'2px solid var(--amber);box-shadow:0 0 12px rgba(224,166,78,.3)':'1px solid rgba(255,255,255,.12)');
+  var chip=nueva?' <span style="background:rgba(53,210,154,.18);color:var(--esmb);padding:2px 7px;border-radius:99px;font-size:9px;font-weight:700">NUEVA</span>':(cambio?' <span style="background:rgba(224,166,78,.18);color:var(--amber);padding:2px 7px;border-radius:99px;font-size:9px;font-weight:700">CAMBIÓ</span>':'');
+  var cel='<div style="flex:none;text-align:center"><div style="font-size:10px;color:var(--mut);margin-bottom:5px;font-family:\'JetBrains Mono\',monospace">'+(i+1)+' · '+_esc(nom)+chip+'</div>'
+   +'<div onclick="closeModal(\'flujomodal\');openPantalla(\''+_esc(_pantProy)+'\',\''+_esc(f.name)+'\')" style="width:'+(390*k)+'px;height:'+(844*k)+'px;overflow:hidden;border:'+borde+';border-radius:10px;cursor:zoom-in;background:#111">'
    +'<iframe id="fl_f_'+i+'" style="width:390px;height:844px;border:0;transform:scale('+k+');transform-origin:top left;pointer-events:none"></iframe></div></div>';
   return cel+(i<_pantFiles.length-1?flecha(nom,_pantFiles[i+1].name.replace('.html','')):'');
  }).join('');
+ /* recordar la última mirada, pero no pisarla mientras seguís trabajando (90 min de gracia) */
+ try{if(!visto||Date.now()-visto>5400000)localStorage.setItem(vkey,String(Date.now()));}catch(e){}
  document.getElementById('flujomodal').classList.add('open');
  _pantFiles.forEach(async function(f,i){
   try{
