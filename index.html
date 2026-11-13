@@ -617,6 +617,15 @@ body{background:#080a0b}
   </div>
 </div>
 
+<!-- RECORRIDO: todas las pantallas en orden -->
+<div class="modal" id="flujomodal" onclick="if(event.target===this)closeModal('flujomodal')">
+  <div class="modal-card" style="max-width:94vw;width:94vw">
+    <button class="mclose" onclick="closeModal('flujomodal')">✕</button>
+    <div class="mhead"><div><div class="mn">Recorrido de la app</div><div class="mr" id="fl_sub">En el orden en que lo vive el jugador · tocá una para zoom y edición</div></div></div>
+    <div id="fl_list" style="display:flex;gap:8px;align-items:center;overflow-x:auto;padding:12px 2px"></div>
+  </div>
+</div>
+
 <!-- VISOR + EDITOR de pantallas -->
 <div class="modal" id="scrmodal">
   <div class="modal-card" style="max-width:520px;padding:14px">
@@ -960,11 +969,35 @@ async function openEtapa(proy,etapa,rol){
    var files=lr.ok?await lr.json():[];
    files=(files||[]).filter(function(f){return /\.html$/i.test(f.name);});
    if(files.length){
+    _pantFiles=_ordenPant(files);_pantProy=proy;
     document.getElementById('et_pant').style.display='block';
-    document.getElementById('et_pantlist').innerHTML=files.map(function(f){return '<button class="mbtn-gh" style="padding:8px 14px;font-size:12px" onclick="openPantalla(\''+_esc(proy)+'\',\''+_esc(f.name)+'\')">'+_esc(f.name.replace('.html',''))+'</button>';}).join('');
+    var btns=_pantFiles.map(function(f){return '<button class="mbtn-gh" style="padding:8px 14px;font-size:12px" onclick="openPantalla(\''+_esc(proy)+'\',\''+_esc(f.name)+'\')">'+_esc(f.name.replace('.html',''))+'</button>';}).join('');
+    if(_pantFiles.length>1)btns='<button class="mbtn-pri" style="padding:8px 14px;font-size:12px" onclick="openFlujo()">🎬 Ver recorrido</button>'+btns;
+    document.getElementById('et_pantlist').innerHTML=btns;
    }
   }catch(e){}
  }
+}
+/* --- recorrido: pantallas en orden, una al lado de la otra --- */
+var _pantFiles=[],_pantProy='';
+var ORDEN_PANT=['intro','splash','login','entrar','idioma','registro','onboard','home','inicio','desafiar','buscar','espera','jugar','partida','tablero','fin','resultado','revancha','activar','billetera','wallet','deposito','retiro','perfil','amigos','invitar','ranking','temporada','ajustes','beneficio','componentes'];
+function _ordenPant(files){
+ return files.slice().sort(function(a,b){
+  function ix(n){n=n.toLowerCase();for(var i=0;i<ORDEN_PANT.length;i++)if(n.indexOf(ORDEN_PANT[i])>=0)return i;return 99;}
+  var ia=ix(a.name),ib=ix(b.name);
+  return ia-ib||a.name.localeCompare(b.name);
+ });
+}
+function openFlujo(){
+ if(!_pantFiles.length)return;
+ var base=_disBase(_pantProy),k=0.36;
+ document.getElementById('fl_list').innerHTML=_pantFiles.map(function(f,i){
+  var cel='<div style="flex:none;text-align:center"><div style="font-size:10.5px;color:var(--mut);margin-bottom:6px;font-family:\'JetBrains Mono\',monospace">'+(i+1)+' · '+_esc(f.name.replace('.html',''))+'</div>'
+   +'<div onclick="closeModal(\'flujomodal\');openPantalla(\''+_esc(_pantProy)+'\',\''+_esc(f.name)+'\')" style="width:'+(390*k)+'px;height:'+(844*k)+'px;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:zoom-in;background:#111">'
+   +'<iframe src="'+base+'/pantallas/'+encodeURIComponent(f.name)+'" loading="lazy" style="width:390px;height:844px;border:0;transform:scale('+k+');transform-origin:top left;pointer-events:none"></iframe></div></div>';
+  return cel+(i<_pantFiles.length-1?'<div style="flex:none;color:var(--mut2);font-size:20px">→</div>':'');
+ }).join('');
+ document.getElementById('flujomodal').classList.add('open');
 }
 /* --- visor + editor --- */
 var _edOn=false,_edDoc=null,_edSel=null,_edProy='',_edPant='',_edDrag=null;
