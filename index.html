@@ -1057,9 +1057,31 @@ async function openEtapa(proy,etapa,rol){
    if(files.length){
     _pantFiles=_ordenPant(files);_pantProy=proy;
     document.getElementById('et_pant').style.display='block';
-    var btns=_pantFiles.map(function(f){return '<button class="mbtn-gh" style="padding:8px 14px;font-size:12px" onclick="openPantalla(\''+_esc(proy)+'\',\''+_esc(f.name)+'\')">'+_esc(f.name.replace('.html',''))+'</button>';}).join('');
-    if(_pantFiles.length>1)btns='<button class="mbtn-pri" style="padding:8px 14px;font-size:12px" onclick="openFlujo()">🎬 Ver recorrido</button>'+btns;
-    document.getElementById('et_pantlist').innerHTML=btns;
+    var prin=_pantFiles.filter(function(f){return !/-(estados(-\d+)?|en)\.html$/i.test(f.name);});
+    var otras=_pantFiles.filter(function(f){return /-(estados(-\d+)?|en)\.html$/i.test(f.name);});
+    if(!prin.length){prin=_pantFiles;otras=[];}
+    var gk=0.26,gW=Math.round(430*gk),gH=Math.round(932*gk);
+    var head='<div style="margin-bottom:10px">'+(_pantFiles.length>1?'<button class="mbtn-pri" style="padding:8px 14px;font-size:12px" onclick="openFlujo()">🎬 Ver recorrido</button> ':'')
+     +(otras.length?'<button class="mbtn-gh" style="padding:8px 14px;font-size:12px" onclick="var x=document.getElementById(\'et_otras\');x.style.display=x.style.display===\'none\'?\'flex\':\'none\'">⚙ Estados e inglés</button>':'')+'</div>';
+    var gal='<div style="display:flex;gap:14px;flex-wrap:wrap">'+prin.map(function(f,i){
+     var nom=f.name.replace('.html','');
+     return '<div style="flex:none;text-align:center;cursor:zoom-in" onclick="openPantalla(\''+_esc(proy)+'\',\''+_esc(f.name)+'\')">'
+      +'<div style="font-size:10.5px;color:var(--mut);margin-bottom:5px;font-family:\'JetBrains Mono\',monospace">'+_esc(nom)+'</div>'
+      +'<div style="width:'+gW+'px;height:'+gH+'px;overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:#111">'
+      +'<iframe id="et_g_'+i+'" style="width:430px;height:932px;border:0;transform:scale('+gk+');transform-origin:top left;pointer-events:none"></iframe></div></div>';
+    }).join('')+'</div>';
+    var chips=otras.length?'<div id="et_otras" style="display:none;gap:8px;flex-wrap:wrap;margin-top:10px">'+otras.map(function(f){return '<button class="mbtn-gh" style="padding:8px 14px;font-size:12px" onclick="openPantalla(\''+_esc(proy)+'\',\''+_esc(f.name)+'\')">'+_esc(f.name.replace('.html',''))+'</button>';}).join('')+'</div>':'';
+    document.getElementById('et_pantlist').innerHTML='<div style="display:block;width:100%">'+head+gal+chips+'</div>';
+    var gbase=_disBase(proy);
+    prin.forEach(async function(f,i){
+     try{
+      var gr=await fetch(gbase+'/pantallas/'+encodeURIComponent(f.name)+'?v='+Date.now());
+      var gh=await gr.text();
+      if(!/<base /i.test(gh))gh=gh.replace(/<head([^>]*)>/i,'<head$1><base href="'+gbase+'/pantallas/">');
+      gh=gh.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
+      var gf=document.getElementById('et_g_'+i);if(gf)gf.srcdoc=gh;
+     }catch(e){}
+    });
    }
   }catch(e){}
  }
