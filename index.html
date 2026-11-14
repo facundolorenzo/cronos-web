@@ -647,6 +647,13 @@ body{background:#080a0b}
       <span id="scr_tools" style="display:none;gap:8px;align-items:center">
         <button class="mbtn-gh" id="scr_multi" onclick="edAgrupar()" style="padding:7px 12px;font-size:11.5px">⬚ Agrupar</button>
         <button class="mbtn-gh" onclick="edDeshacer()" style="padding:7px 12px;font-size:11.5px">↩ Deshacer</button>
+        <span class="mbtn-gh" style="padding:5px 12px;font-size:11.5px;display:inline-flex;flex-direction:column;align-items:center;gap:1px;cursor:default">
+          <span style="opacity:.8">Tamaño</span>
+          <span style="display:flex;gap:4px">
+            <button onclick="edFont(0.89)" title="Achicar letra" style="all:unset;cursor:pointer;padding:1px 10px;border-radius:999px;font-size:14px;line-height:1.2">−</button>
+            <button onclick="edFont(1.12)" title="Agrandar letra" style="all:unset;cursor:pointer;padding:1px 10px;border-radius:999px;font-size:14px;line-height:1.2">+</button>
+          </span>
+        </span>
         <button class="mbtn-gh" onclick="edBorrar()" style="padding:7px 12px;font-size:11.5px">🗑 Borrar</button>
         <button class="mbtn-gh" onclick="edAgregar()" style="padding:7px 12px;font-size:11.5px">🖼 Agregar</button>
         <button class="mbtn-gh" onclick="edDuplicar()" style="padding:7px 12px;font-size:11.5px">⧉ Duplicar</button>
@@ -658,13 +665,7 @@ body{background:#080a0b}
           </span>
         </span>
         <input type="file" id="scr_file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="edArchivo(this)">
-        <span class="mbtn-gh" style="padding:5px 12px;font-size:11.5px;display:inline-flex;flex-direction:column;align-items:center;gap:1px;cursor:default">
-          <span style="opacity:.8">Tamaño</span>
-          <span style="display:flex;gap:4px">
-            <button onclick="edFont(0.89)" title="Achicar letra" style="all:unset;cursor:pointer;padding:1px 10px;border-radius:999px;font-size:14px;line-height:1.2">−</button>
-            <button onclick="edFont(1.12)" title="Agrandar letra" style="all:unset;cursor:pointer;padding:1px 10px;border-radius:999px;font-size:14px;line-height:1.2">+</button>
-          </span>
-        </span>
+
       </span>
       <button class="mbtn-pri" onclick="edGuardar()" style="padding:7px 12px;font-size:11.5px">Guardar</button>
     </div>
