@@ -347,7 +347,7 @@ body{background:#080a0b}
 .fab-row.wait .nm,.fab-row.wait .msg{color:var(--amber)}
 .fab-badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;padding:3px 8px;border-radius:99px;background:rgba(224,166,78,.16);color:var(--amber);flex:none}
 @keyframes fabpulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
-#scrmodal .modal-card{scrollbar-width:none}
+#scrmodal .modal-card{scrollbar-width:none;max-height:97vh}
 #scrmodal .modal-card::-webkit-scrollbar{width:0;height:0}
 </style>
 </head>
@@ -674,7 +674,7 @@ body{background:#080a0b}
         <iframe id="scr_frame" style="width:430px;height:932px;border:0;transform-origin:top left;display:block"></iframe>
       </div>
     </div>
-    <div style="text-align:center;font-size:10.5px;color:var(--mut);margin-top:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em">430 × 932 · IPHONE 16 PRO MAX</div>
+    <div id="scr_pie" style="text-align:center;font-size:10.5px;color:var(--mut);margin-top:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em">430 × 932 · IPHONE 16 PRO MAX</div>
   </div>
 </div>
 
@@ -1192,7 +1192,10 @@ var _edOn=false,_edDoc=null,_edSel=null,_edProy='',_edPant='',_edDrag=null;
 function scrFit(){
  var zone=document.getElementById('scr_zone');if(!zone)return;
  var availW=zone.clientWidth||430;
- var availH=Math.max(360,window.innerHeight-165);
+ var card=zone.closest('.modal-card');
+ var arriba=(zone.offsetTop||0)+(card?parseFloat(getComputedStyle(card).paddingBottom)||14:14);
+ var pie=(document.getElementById('scr_pie')?document.getElementById('scr_pie').offsetHeight+10:34);
+ var availH=Math.max(360,window.innerHeight*0.97-arriba-pie-4);
  var k=Math.min(availW/430,availH/932,1);
  var fr=document.getElementById('scr_frame');if(!fr)return;
  fr.style.transform='scale('+k+')';
