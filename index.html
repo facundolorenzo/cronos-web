@@ -1213,8 +1213,26 @@ async function openPantalla(proy,archivo){
   html=html.replace(/<\/head>/i,'<style id="cr-noscroll">::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
   var fr=document.getElementById('scr_frame');
   fr.srcdoc=html;
-  fr.onload=function(){_edDoc=fr.contentDocument;_edPrep();};
+  fr.onload=function(){_edDoc=fr.contentDocument;_edPrep();_edLinks(proy);};
  }catch(e){alert('No se pudo cargar la pantalla.');}
+}
+// Links dentro de la pantalla: en edición no navegan; en vista, si apuntan a otra pantalla la abren en el visor (nunca en crudo).
+function _edLinks(proy){
+ try{
+  var d=_edDoc;if(!d||d.__crLinks)return;d.__crLinks=true;
+  d.addEventListener('click',function(e){
+   var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;
+   if(!a)return;
+   var href=a.getAttribute('href')||'';
+   if(_edOn){e.preventDefault();e.stopPropagation();return;}
+   if(/^#/.test(href))return;
+   var m=/([a-z0-9_-]+\.html)(\?[^#]*)?/i.exec(href);
+   if(m&&!/^https?:\/\//i.test(href)){e.preventDefault();e.stopPropagation();openPantalla(proy,m[1].toLowerCase());return;}
+   if(/^https?:\/\//i.test(href)){e.preventDefault();window.open(href,'_blank');}
+  },true);
+  // Formularios tampoco navegan dentro del visor
+  d.addEventListener('submit',function(e){e.preventDefault();},true);
+ }catch(e){}
 }
 var _edMoved=false,_edRs=null,_edSels=[],_edMulti=false,_edHist=[];
 function _edNombre(el){var t=(el.tagName||'').toLowerCase();if(/^(h1|h2|h3|h4|h5|h6|p|span|small|label|b|i|strong|em)$/.test(t))return 'TEXTO';if(t==='button'||t==='a')return 'BOTÓN';if(t==='img')return 'IMAGEN';if(t==='input'||t==='textarea'||t==='select')return 'CAMPO';return 'CAJA';}
