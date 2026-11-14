@@ -904,7 +904,8 @@ async function fetchIncs(){
 /* --- CABLE: avisos en vivo de la fábrica (tabla eventos) --- */
 var _evTimer=null,_evs=[];
 var FAB_ETAPAS=[['MATEO','Validación'],['HAROLD','Mercado'],['BRIAN','Producto'],['MARCA','Identidad'],['MAYA','UX'],['JUN','UI']];
-var AG_META={MATEO:['🔍','#46AEBC'],HAROLD:['📊','#E0A64E'],BRIAN:['🧩','#9B8CFF'],MARCA:['🎨','#E8695C'],MAYA:['🗺️','#35D29A'],JUN:['🖌️','#5EEBAE'],DIRECTOR:['🎬','#EAEEEC'],INCUBACION:['🏁','#5EEBAE']};
+var AG_META={MATEO:['Mateo','#46AEBC'],HAROLD:['Harold','#E0A64E'],BRIAN:['Brian','#9B8CFF'],MARCA:['Valentina','#E8695C'],MAYA:['Maya','#35D29A'],JUN:['Jun','#5EEBAE'],DIRECTOR:['Director','#EAEEEC'],INCUBACION:['Cronos','#5EEBAE']};
+function _agAv(n,px){var m=AG_META[n]||['Agente','#868D8A'];return '<img src="https://api.dicebear.com/9.x/adventurer/svg?seed='+encodeURIComponent(m[0])+'" alt="'+n+'" style="width:'+px+'px;height:'+px+'px;border-radius:50%;background:'+m[1]+'22;border:2px solid '+m[1]+';display:block">';}
 function _fabPipelineHTML(proyecto){
  var evs=_evs.filter(function(e){return e.proyecto===proyecto;});
  if(!evs.length)return '';
@@ -920,11 +921,10 @@ function _fabPipelineHTML(proyecto){
   else if(s==='trabajando'){estTxt='● trabajando';estCol='var(--esmb)';glow='border-color:rgba(94,235,174,.5);box-shadow:0 0 14px rgba(94,235,174,.12);';}
   else if(s==='error'){estTxt='✕ problema';estCol='var(--rojo)';glow='border-color:rgba(232,105,92,.55);';}
   else{estTxt='en cola';estCol='var(--mut2)';}
-  var meta=AG_META[n]||['🤖','#868D8A'];
   var acc=(s==='trabajando'||s==='esperando_ok')&&msg[n]?'<div style="font-size:10.5px;color:var(--mut);margin-top:5px;line-height:1.4;max-height:44px;overflow:hidden">'+_esc(msg[n])+'</div>':'';
   var ult=when[n]?'<div style="font-size:9.5px;color:var(--mut2);margin-top:5px;font-family:\'JetBrains Mono\',monospace">últ. mod '+_esc(_evAgo(when[n]).replace('hace ',''))+'</div>':'';
   return '<div onclick="event.stopPropagation();openEtapa(\''+_esc(proyecto)+'\',\''+n+'\',\''+rol+'\')" style="flex:1 1 148px;min-width:148px;max-width:200px;background:var(--panel);border:1px solid var(--line);'+glow+'border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;opacity:'+(estTxt==='en cola'?'.55':'1')+'">'
-   +'<div style="width:46px;height:46px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:21px;background:'+meta[1]+'22;border:2px solid '+meta[1]+'">'+meta[0]+'</div>'
+   +'<div style="width:52px;margin:0 auto 8px">'+_agAv(n,52)+'</div>'
    +'<div style="font-weight:800;font-size:13px;letter-spacing:.02em;color:var(--texto)">'+n+'</div>'
    +'<div style="font-size:10.5px;color:var(--mut);margin-top:1px">'+rol+'</div>'
    +'<div style="font-size:11px;font-weight:700;color:'+estCol+';margin-top:7px">'+estTxt+'</div>'
@@ -1070,8 +1070,8 @@ function _entregaSeg(txt){
 async function openEtapa(proy,etapa,rol){
  document.getElementById('et_name').textContent=etapa+' · '+rol;
  document.getElementById('et_sub').textContent='Proyecto '+proy;
- var _am=AG_META[etapa]||['🤖','#868D8A'],_av=document.getElementById('et_avatar');
- if(_av){_av.textContent=_am[0];_av.style.background=_am[1]+'22';_av.style.borderColor=_am[1];}
+ var _av=document.getElementById('et_avatar');
+ if(_av){_av.style.border='0';_av.innerHTML=_agAv(etapa,46);}
  var body=document.getElementById('et_body');body.innerHTML='Buscando la entrega…';
  document.getElementById('et_pant').style.display='none';
  document.getElementById('et_tab_p').style.display='none';
