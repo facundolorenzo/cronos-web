@@ -638,7 +638,7 @@ body{background:#080a0b}
 </div>
 
 <!-- VISOR + EDITOR de pantallas -->
-<div class="modal" id="scrmodal">
+<div class="modal" id="scrmodal" onclick="if(event.target===this)scrCerrar()">
   <div class="modal-card" style="max-width:520px;padding:14px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
       <button class="mclose" style="position:static;flex:none" onclick="scrCerrar()" title="Guardar y volver">←</button>
