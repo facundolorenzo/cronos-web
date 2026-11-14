@@ -926,15 +926,17 @@ function _fabPipelineHTML(proyecto){
   else if(s==='trabajando'){estTxt='● trabajando';estCol='var(--esmb)';glow='border-color:rgba(94,235,174,.5);box-shadow:0 0 14px rgba(94,235,174,.12);';}
   else if(s==='error'){estTxt='✕ problema';estCol='var(--rojo)';glow='border-color:rgba(232,105,92,.55);';}
   else{estTxt='en cola';estCol='var(--mut2)';}
-  var acc=(s==='trabajando'||s==='esperando_ok')&&msg[n]?'<div style="font-size:10.5px;color:var(--mut);margin-top:5px;line-height:1.4;max-height:44px;overflow:hidden">'+_esc(msg[n])+'</div>':'';
-  var ult=when[n]?'<div style="font-size:9.5px;color:var(--mut2);margin-top:5px;font-family:\'JetBrains Mono\',monospace">últ. mod '+_esc(_evAgo(when[n]).replace('hace ',''))+'</div>':'';
-  return '<div onclick="event.stopPropagation();openEtapa(\''+_esc(proyecto)+'\',\''+n+'\',\''+rol+'\')" style="flex:1 1 148px;min-width:148px;max-width:200px;background:var(--panel);border:1px solid var(--line);'+glow+'border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;opacity:'+(estTxt==='en cola'?'.55':'1')+'">'
+  var acc=msg[n]?'<div style="font-size:10.5px;color:var(--mut);margin-top:6px;line-height:1.45;text-align:left">'+_esc(msg[n])+'</div>':'';
+  var ult=when[n]?'<div style="font-size:9.5px;color:var(--mut2);margin-top:6px;font-family:\'JetBrains Mono\',monospace;text-align:left">últ. mod '+_esc(_evAgo(when[n]).replace('hace ',''))+'</div>':'';
+  var did='fd_'+proyecto.replace(/\W/g,'')+'_'+n;
+  var det=(acc||ult)?'<div onclick="event.stopPropagation();var d=document.getElementById(\''+did+'\'),f=document.getElementById(\''+did+'_f\');var ab=d.style.display===\'none\';d.style.display=ab?\'block\':\'none\';f.textContent=ab?\'▴ Detalle\':\'▾ Detalle\'" style="margin-top:9px;font-size:10.5px;color:var(--mut);cursor:pointer;user-select:none"><span id="'+did+'_f">▾ Detalle</span></div><div id="'+did+'" style="display:none">'+acc+ult+'</div>':'';
+  return '<div onclick="event.stopPropagation();openEtapa(\''+_esc(proyecto)+'\',\''+n+'\',\''+rol+'\')" style="flex:1 1 148px;min-width:148px;max-width:200px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);'+glow+'border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;opacity:'+(estTxt==='en cola'?'.55':'1')+'">'
    +'<div style="width:52px;margin:0 auto 8px">'+_agAv(n,52)+'</div>'
    +'<div style="font-weight:800;font-size:13px;letter-spacing:.02em;color:var(--texto)">'+n+'</div>'
    +'<div style="font-size:10.5px;color:var(--mut);margin-top:1px">'+rol+'</div>'
-   +'<div style="font-size:11px;font-weight:700;color:'+estCol+';margin-top:7px">'+estTxt+'</div>'
-   +acc+ult
-   +'<button class="mbtn-gh" style="margin-top:9px;padding:6px 16px;font-size:11px;width:100%">Abrir</button></div>';
+   +'<div style="font-size:11px;font-weight:700;color:'+estCol+';margin-top:7px;margin-bottom:12px">'+estTxt+'</div>'
+   +'<button class="mbtn-gh" style="margin-top:auto;padding:6px 16px;font-size:11px;width:100%">Abrir</button>'
+   +det+'</div>';
  }).join('');
  var last=evs[0],hcls='',htxt;
  if(fin)htxt='<b>INCUBACIÓN TERMINADA</b> — lista para tu aprobación final';
