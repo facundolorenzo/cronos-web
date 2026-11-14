@@ -1123,6 +1123,7 @@ async function openEtapa(proy,etapa,rol){
     var chips=otras.length?'<div id="et_otras" style="display:none;gap:8px;flex-wrap:wrap;margin-top:10px">'+otras.map(function(f){return '<button class="mbtn-gh" style="padding:8px 14px;font-size:12px" onclick="openPantalla(\''+_esc(proy)+'\',\''+_esc(f.name)+'\')">'+_esc(f.name.replace('.html',''))+'</button>';}).join('')+'</div>':'';
     document.getElementById('et_pantlist').innerHTML='<div style="display:block;width:100%">'+head+gal+chips+'</div>';
     var gbase=_disBase(proy);
+    window._etGalMap={};prin.forEach(function(f,i){window._etGalMap[f.name]=i;});window._etGalBase=gbase;
     prin.forEach(async function(f,i){
      try{
       var gr=await fetch(gbase+'/pantallas/'+encodeURIComponent(f.name)+'?v='+Date.now());
@@ -1515,6 +1516,17 @@ function _edKeys(e){
 }
 document.addEventListener('keydown',function(e){if(document.getElementById('scrmodal').classList.contains('open'))_edKeys(e);});
 function _edSinGuardar(){try{return _edDoc&&_edDoc.querySelector('[data-ced="1"]');}catch(e){return false;}}
+async function _etGalRefresh(archivo){
+ try{
+  var m=window._etGalMap||{};if(!(archivo in m))return;
+  var base=window._etGalBase;if(!base)return;
+  var r=await fetch(base+'/pantallas/'+encodeURIComponent(archivo)+'?v='+Date.now());
+  var h=await r.text();
+  if(!/<base /i.test(h))h=h.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
+  h=h.replace(/<\/head>/i,'<style>::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}<\/style><\/head>');
+  var fr=document.getElementById('et_g_'+m[archivo]);if(fr)fr.srcdoc=h;
+ }catch(e){}
+}
 async function scrCerrar(){
  if(_edSinGuardar()){
   await edGuardar(true);
@@ -1631,7 +1643,7 @@ async function edGuardar(auto){
   var up=await _supa.storage.from('diseno').upload(_edProy.toLowerCase()+'/pantallas/'+_edPant,new Blob([htmlFin],{type:'text/html'}),{upsert:true,contentType:'text/html',cacheControl:'0'});
   if(up.error)err2=up.error.message;else ok2=true;
  }catch(e9){err2=e9.message||String(e9);}
- if(ok2)eds.forEach(function(el){delete el.dataset.ced;});
+ if(ok2){eds.forEach(function(el){delete el.dataset.ced;});_etGalRefresh(_edPant);}
  if(!auto)alert('Guardado ✔ '+cambios.length+' cambio(s) para los agentes.'+(ok2?' La pantalla quedó guardada como la dejaste.':' OJO: la pantalla no se pudo guardar aparte ('+err2+').'));
 }
 function openIncNew(){if(!_supa){initInc();return;}var d=document.getElementById('nf_done');if(d)d.innerHTML='';['nf_nombre','nf_idea','nf_cliente'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});nfTipo('propio');document.getElementById('incnew').classList.add('open');setTimeout(function(){var n=document.getElementById('nf_nombre');if(n)n.focus();},50);}
