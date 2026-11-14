@@ -642,11 +642,17 @@ body{background:#080a0b}
         <button class="mbtn-gh" onclick="edBorrar()" style="padding:7px 12px;font-size:11.5px">🗑 Borrar</button>
         <button class="mbtn-gh" onclick="edAgregar()" style="padding:7px 12px;font-size:11.5px">🖼 Agregar</button>
         <button class="mbtn-gh" onclick="edDuplicar()" style="padding:7px 12px;font-size:11.5px">⧉ Duplicar</button>
-        <button class="mbtn-gh" onclick="edCapa(1)" style="padding:7px 12px;font-size:11.5px">⬆ Frente</button>
-        <button class="mbtn-gh" onclick="edCapa(-1)" style="padding:7px 12px;font-size:11.5px">⬇ Atrás</button>
+        <span class="mbtn-gh" style="padding:4px 6px;font-size:11.5px;display:inline-flex;align-items:center;gap:2px;cursor:default">
+          <span style="padding:0 4px;opacity:.75">Posición</span>
+          <button onclick="edCapa(1)" title="Traer al frente" style="all:unset;cursor:pointer;padding:3px 9px;border-radius:999px;font-size:13px;line-height:1">↑</button>
+          <button onclick="edCapa(-1)" title="Mandar atrás" style="all:unset;cursor:pointer;padding:3px 9px;border-radius:999px;font-size:13px;line-height:1">↓</button>
+        </span>
         <input type="file" id="scr_file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="edArchivo(this)">
-        <button class="mbtn-gh" onclick="edFont(1.12)" style="padding:7px 12px;font-size:11.5px">A+</button>
-        <button class="mbtn-gh" onclick="edFont(0.89)" style="padding:7px 12px;font-size:11.5px">A−</button>
+        <span class="mbtn-gh" style="padding:4px 6px;font-size:11.5px;display:inline-flex;align-items:center;gap:2px;cursor:default">
+          <span style="padding:0 4px;opacity:.75">A</span>
+          <button onclick="edFont(0.89)" title="Achicar letra" style="all:unset;cursor:pointer;padding:3px 10px;border-radius:999px;font-size:13px;line-height:1">−</button>
+          <button onclick="edFont(1.12)" title="Agrandar letra" style="all:unset;cursor:pointer;padding:3px 10px;border-radius:999px;font-size:13px;line-height:1">+</button>
+        </span>
       </span>
       <button class="mbtn-pri" onclick="edGuardar()" style="padding:7px 12px;font-size:11.5px">Guardar</button>
     </div>
