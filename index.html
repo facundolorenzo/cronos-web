@@ -1144,6 +1144,8 @@ function _ordenPant(files){
 }
 async function openFlujo(){
  if(!_pantFiles.length)return;
+ var fls=_pantFiles.filter(function(f){return !/-(estados(-\d+)?|en)\.html$/i.test(f.name);});
+ if(!fls.length)fls=_pantFiles;
  var base=_disBase(_pantProy),k=0.3;
  var flujo=[];
  try{var fr0=await fetch(base+'/pantallas/flujo.json');if(fr0.ok)flujo=await fr0.json();}catch(e){}
@@ -1154,7 +1156,7 @@ async function openFlujo(){
  }
  var visto=0,vkey='cronos_visto_'+_pantProy.toLowerCase();
  try{visto=parseInt(localStorage.getItem(vkey)||'0',10)||0;}catch(e){}
- document.getElementById('fl_list').innerHTML=_pantFiles.map(function(f,i){
+ document.getElementById('fl_list').innerHTML=fls.map(function(f,i){
   var nom=f.name.replace('.html','');
   var cre=f.created_at?new Date(f.created_at).getTime():0;
   var upd=f.updated_at?new Date(f.updated_at).getTime():cre;
@@ -1164,12 +1166,12 @@ async function openFlujo(){
   var cel='<div style="flex:none;text-align:center"><div style="font-size:10px;color:var(--mut);margin-bottom:5px;font-family:\'JetBrains Mono\',monospace">'+(i+1)+' · '+_esc(nom)+chip+'</div>'
    +'<div onclick="closeModal(\'flujomodal\');openPantalla(\''+_esc(_pantProy)+'\',\''+_esc(f.name)+'\')" style="width:'+(430*k)+'px;height:'+(932*k)+'px;overflow:hidden;border:'+borde+';border-radius:10px;cursor:zoom-in;background:#111">'
    +'<iframe id="fl_f_'+i+'" style="width:430px;height:932px;border:0;transform:scale('+k+');transform-origin:top left;pointer-events:none"></iframe></div></div>';
-  return cel+(i<_pantFiles.length-1?flecha(nom,_pantFiles[i+1].name.replace('.html','')):'');
+  return cel+(i<fls.length-1?flecha(nom,fls[i+1].name.replace('.html','')):'');
  }).join('');
  /* recordar la última mirada, pero no pisarla mientras seguís trabajando (90 min de gracia) */
  try{if(!visto||Date.now()-visto>5400000)localStorage.setItem(vkey,String(Date.now()));}catch(e){}
  document.getElementById('flujomodal').classList.add('open');
- _pantFiles.forEach(async function(f,i){
+ fls.forEach(async function(f,i){
   try{
    var r=await fetch(base+'/pantallas/'+encodeURIComponent(f.name)+'?v='+Date.now());
    var html=await r.text();
