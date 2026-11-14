@@ -612,11 +612,19 @@ body{background:#080a0b}
 
 <!-- MODAL ETAPA (lo que hizo cada agente) -->
 <div class="modal" id="etmodal" onclick="if(event.target===this)closeModal('etmodal')">
-  <div class="modal-card" style="max-width:860px;width:min(92vw,860px);resize:both;overflow:auto;min-width:320px;min-height:300px">
+  <div class="modal-card" style="max-width:none;width:96vw;height:93vh;max-height:93vh;overflow:auto">
     <button class="mclose" onclick="closeModal('etmodal')">✕</button>
-    <div class="mhead"><div><div class="mn" id="et_name"></div><div class="mr" id="et_sub"></div></div><button class="mbtn-gh" id="et_voz" onclick="etLeer()" style="padding:8px 14px;font-size:12px;flex:none">🔊 Leémelo</button></div>
-    <div id="et_pant" style="display:none;margin:10px 0"><div class="mt">Pantallas · tocá una para verla y editarla</div><div id="et_pantlist" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div></div>
-    <div class="msec"><div class="mt">La entrega</div><div id="et_body" style="font-size:12.5px;color:var(--mut);line-height:1.6;max-height:58vh;overflow:auto"></div></div>
+    <div class="mhead" style="flex-wrap:wrap;row-gap:8px">
+      <div id="et_avatar" style="width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:21px;border:2px solid var(--mut2)"></div>
+      <div><div class="mn" id="et_name"></div><div class="mr" id="et_sub"></div></div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="mbtn-gh" id="et_tab_p" onclick="etTab('p')" style="padding:8px 14px;font-size:12px;display:none">🖼 Pantallas</button>
+        <button class="mbtn-gh" id="et_tab_e" onclick="etTab('e')" style="padding:8px 14px;font-size:12px">📄 Entrega</button>
+        <button class="mbtn-gh" id="et_voz" onclick="etLeer()" style="padding:8px 14px;font-size:12px;flex:none">🔊 Leémelo</button>
+      </div>
+    </div>
+    <div id="et_pant" style="display:none;margin:14px 0"><div class="mt">Pantallas · tocá una para editarla</div><div id="et_pantlist" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div></div>
+    <div class="msec" id="et_secE"><div class="mt">La entrega</div><div id="et_body" style="font-size:12.5px;color:var(--mut);line-height:1.6"></div></div>
   </div>
 </div>
 
@@ -896,6 +904,7 @@ async function fetchIncs(){
 /* --- CABLE: avisos en vivo de la fábrica (tabla eventos) --- */
 var _evTimer=null,_evs=[];
 var FAB_ETAPAS=[['MATEO','Validación'],['HAROLD','Mercado'],['BRIAN','Producto'],['MARCA','Identidad'],['MAYA','UX'],['JUN','UI']];
+var AG_META={MATEO:['🔍','#46AEBC'],HAROLD:['📊','#E0A64E'],BRIAN:['🧩','#9B8CFF'],MARCA:['🎨','#E8695C'],MAYA:['🗺️','#35D29A'],JUN:['🖌️','#5EEBAE'],DIRECTOR:['🎬','#EAEEEC'],INCUBACION:['🏁','#5EEBAE']};
 function _fabPipelineHTML(proyecto){
  var evs=_evs.filter(function(e){return e.proyecto===proyecto;});
  if(!evs.length)return '';
@@ -904,20 +913,29 @@ function _fabPipelineHTML(proyecto){
  var lastIdx=-1;FAB_ETAPAS.forEach(function(p,i){if(st[p[0]])lastIdx=Math.max(lastIdx,i);});
  var fin=st['INCUBACION']==='terminado';
  var rows=FAB_ETAPAS.map(function(p,i){
-  var n=p[0],rol=p[1],s=st[n],cls,ic,extra='';
-  if(fin||(i<lastIdx&&s!=='error')||s==='aprobado'||s==='terminado'){cls='done';ic='✓';}
-  else if(s==='esperando_ok'){cls='wait';ic='!';extra='<span class="fab-badge">TE ESPERA</span>';}
-  else if(s==='trabajando'){cls='run';ic='';}
-  else if(s==='error'){cls='wait';ic='✕';extra='<span class="fab-badge">PROBLEMA</span>';}
-  else{cls='todo';ic='·';}
-  var m=(cls==='run'||cls==='wait')?'<span class="msg">'+_esc(msg[n])+'</span>':(cls==='done'?'<span class="msg">listo'+(when[n]?' · '+_evAgo(when[n]):'')+'</span>':'<span class="msg">en cola</span>');
-  return '<div class="fab-row '+cls+'" onclick="event.stopPropagation();openEtapa(\''+_esc(proyecto)+'\',\''+n+'\',\''+rol+'\')" style="cursor:pointer"><span class="fab-ic">'+ic+'</span><span class="nm">'+n+'</span><span class="rl">'+rol+'</span>'+m+extra+'</div>';
+  var n=p[0],rol=p[1],s=st[n],estTxt,estCol,glow='';
+  var done=fin||(i<lastIdx&&s!=='error')||s==='aprobado'||s==='terminado';
+  if(done){estTxt='✓ listo';estCol='var(--esm)';}
+  else if(s==='esperando_ok'){estTxt='⚠ te espera';estCol='var(--amber)';glow='border-color:rgba(224,166,78,.55);box-shadow:0 0 16px rgba(224,166,78,.16);';}
+  else if(s==='trabajando'){estTxt='● trabajando';estCol='var(--esmb)';glow='border-color:rgba(94,235,174,.5);box-shadow:0 0 14px rgba(94,235,174,.12);';}
+  else if(s==='error'){estTxt='✕ problema';estCol='var(--rojo)';glow='border-color:rgba(232,105,92,.55);';}
+  else{estTxt='en cola';estCol='var(--mut2)';}
+  var meta=AG_META[n]||['🤖','#868D8A'];
+  var acc=(s==='trabajando'||s==='esperando_ok')&&msg[n]?'<div style="font-size:10.5px;color:var(--mut);margin-top:5px;line-height:1.4;max-height:44px;overflow:hidden">'+_esc(msg[n])+'</div>':'';
+  var ult=when[n]?'<div style="font-size:9.5px;color:var(--mut2);margin-top:5px;font-family:\'JetBrains Mono\',monospace">últ. mod '+_esc(_evAgo(when[n]).replace('hace ',''))+'</div>':'';
+  return '<div onclick="event.stopPropagation();openEtapa(\''+_esc(proyecto)+'\',\''+n+'\',\''+rol+'\')" style="flex:1 1 148px;min-width:148px;max-width:200px;background:var(--panel);border:1px solid var(--line);'+glow+'border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;opacity:'+(estTxt==='en cola'?'.55':'1')+'">'
+   +'<div style="width:46px;height:46px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:21px;background:'+meta[1]+'22;border:2px solid '+meta[1]+'">'+meta[0]+'</div>'
+   +'<div style="font-weight:800;font-size:13px;letter-spacing:.02em;color:var(--texto)">'+n+'</div>'
+   +'<div style="font-size:10.5px;color:var(--mut);margin-top:1px">'+rol+'</div>'
+   +'<div style="font-size:11px;font-weight:700;color:'+estCol+';margin-top:7px">'+estTxt+'</div>'
+   +acc+ult
+   +'<button class="mbtn-gh" style="margin-top:9px;padding:6px 16px;font-size:11px;width:100%">Abrir</button></div>';
  }).join('');
  var last=evs[0],hcls='',htxt;
  if(fin)htxt='<b>INCUBACIÓN TERMINADA</b> — lista para tu aprobación final';
- else if(last.estado==='esperando_ok'){hcls=' waiting';htxt='<b>'+_esc(last.etapa)+' TE ESPERA</b> — entrá a la terminal del director a firmar';}
+ else if(last.estado==='esperando_ok'){hcls=' waiting';htxt='<b>'+_esc(last.etapa)+' TE ESPERA</b> — abrí la etapa o contestá en el chat del director';}
  else htxt='<b>AHORA: '+_esc(last.etapa)+'</b> '+(last.estado==='trabajando'?'está trabajando':_esc(last.estado))+' · '+_evAgo(last.created_at);
- return '<div class="fab"><div class="fab-head'+hcls+'">'+htxt+'</div>'+rows+'</div>';
+ return '<div class="fab" style="border:0;overflow:visible"><div class="fab-head'+hcls+'" style="border-radius:12px">'+htxt+'</div><div style="display:flex;gap:11px;flex-wrap:wrap;margin-top:12px">'+rows+'</div></div>';
 }
 function _evBadge(estado){var m={trabajando:['Trabajando',''],esperando_ok:['Te espera','esp'],aprobado:['Aprobado','go'],terminado:['Terminado','go'],error:['Problema','esp']};var b=m[estado]||[estado,''];return '<span class="ec '+b[1]+'">'+_esc(b[0])+'</span>';}
 function _evAgo(ts){var s=(Date.now()-new Date(ts).getTime())/1000;if(s<60)return 'recién';var m=Math.floor(s/60);if(m<60)return 'hace '+m+' min';var h=Math.floor(m/60);if(h<24)return 'hace '+h+' h';return 'hace '+Math.floor(h/24)+' días';}
@@ -1033,18 +1051,38 @@ function etLeer(){
   sy.speak(u);if(b)b.textContent='⏹ Parar';
  }catch(e){alert('Este navegador no puede leer en voz alta.');}
 }
+function etTab(w){
+ var p=document.getElementById('et_pant'),e=document.getElementById('et_secE');
+ var hayP=document.getElementById('et_tab_p').style.display!=='none';
+ if(w==='p'&&hayP){p.style.display='block';e.style.display='none';}
+ else{e.style.display='block';p.style.display='none';}
+}
+function _entregaSeg(txt){
+ var parts=txt.split(/\n(?=##\s)/);
+ if(parts.length<2)return _mdLite(txt);
+ return parts.map(function(ch){
+  var m=ch.match(/^##\s+(.+)\n?/);
+  if(!m)return '<div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px">'+_mdLite(ch)+'</div>';
+  var tit=m[1].replace(/[#*]/g,'').trim(),cuerpo=ch.slice(m[0].length);
+  return '<div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px"><div style="font-weight:800;font-size:14px;color:var(--texto);margin-bottom:9px">'+_esc(tit)+'</div>'+_mdLite(cuerpo)+'</div>';
+ }).join('');
+}
 async function openEtapa(proy,etapa,rol){
  document.getElementById('et_name').textContent=etapa+' · '+rol;
  document.getElementById('et_sub').textContent='Proyecto '+proy;
+ var _am=AG_META[etapa]||['🤖','#868D8A'],_av=document.getElementById('et_avatar');
+ if(_av){_av.textContent=_am[0];_av.style.background=_am[1]+'22';_av.style.borderColor=_am[1];}
  var body=document.getElementById('et_body');body.innerHTML='Buscando la entrega…';
  document.getElementById('et_pant').style.display='none';
+ document.getElementById('et_tab_p').style.display='none';
+ document.getElementById('et_secE').style.display='block';
  document.getElementById('etmodal').classList.add('open');
  var base=_disBase(proy),txt=null;
  var cands=ET_ARCHIVOS[etapa]||[etapa.toLowerCase()+'-entrega.md'];
  for(var i=0;i<cands.length&&txt===null;i++){
   try{var r=await fetch(base+'/entregas/'+cands[i]+'?v='+Date.now());if(r.ok)txt=await r.text();}catch(e){}
  }
- body.innerHTML=txt?_mdLite(txt):'La entrega todavía no se subió al panel.<br><br>En la compu, en la carpeta jaque, corré:<br><b>powershell -ExecutionPolicy Bypass -File cable\\subir.ps1</b><br><br>y volvé a tocar la etapa.';
+ body.innerHTML=txt?_entregaSeg(txt):'La entrega todavía no se subió al panel.<br><br>En la compu, en la carpeta jaque, corré:<br><b>powershell -ExecutionPolicy Bypass -File cable\\subir.ps1</b><br><br>y volvé a tocar la etapa.';
  try{window.speechSynthesis.cancel();}catch(e){}
  var vb=document.getElementById('et_voz');if(vb)vb.textContent='🔊 Leémelo';
  _vozTxt=txt?_vozDe(txt):'';
@@ -1056,7 +1094,8 @@ async function openEtapa(proy,etapa,rol){
    files=(files||[]).filter(function(f){return /\.html$/i.test(f.name);});
    if(files.length){
     _pantFiles=_ordenPant(files);_pantProy=proy;
-    document.getElementById('et_pant').style.display='block';
+    document.getElementById('et_tab_p').style.display='';
+    etTab('p');
     var prin=_pantFiles.filter(function(f){return !/-(estados(-\d+)?|en)\.html$/i.test(f.name);});
     var otras=_pantFiles.filter(function(f){return /-(estados(-\d+)?|en)\.html$/i.test(f.name);});
     if(!prin.length){prin=_pantFiles;otras=[];}
