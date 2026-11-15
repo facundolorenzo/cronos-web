@@ -639,7 +639,7 @@ body{background:#080a0b}
 
 <!-- VISOR + EDITOR de pantallas -->
 <div class="modal" id="scrmodal" onclick="if(event.target===this)scrCerrar()">
-  <div class="modal-card" style="max-width:520px;padding:14px">
+  <div class="modal-card" id="scr_card" style="max-width:520px;padding:14px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
       <button class="mclose" style="position:static;flex:none" onclick="scrCerrar()" title="Guardar y volver">←</button>
       <b id="scr_name" style="font-size:13px;flex:1"></b>
@@ -1189,18 +1189,28 @@ async function openFlujo(){
 }
 /* --- visor + editor --- */
 var _edOn=false,_edDoc=null,_edSel=null,_edProy='',_edPant='',_edDrag=null;
+var _scrW=430,_scrH=932;
+function _scrTam(archivo,html){
+ var m=/<meta[^>]+name=["']cronos-size["'][^>]+content=["'](\d+)\s*[x×]\s*(\d+)["']/i.exec(html||'');
+ if(m){_scrW=+m[1];_scrH=+m[2];return;}
+ if(/^(admin|dashboard|panel)/i.test(archivo||'')){_scrW=1280;_scrH=800;return;}
+ _scrW=430;_scrH=932;
+}
 function scrFit(){
  var zone=document.getElementById('scr_zone');if(!zone)return;
+ var card0=document.getElementById('scr_card');if(card0)card0.style.maxWidth=(_scrW===430?520:Math.min(window.innerWidth*0.96,_scrW+40))+'px';
  var availW=zone.clientWidth||430;
  var card=zone.closest('.modal-card');
  var arriba=(zone.offsetTop||0)+(card?parseFloat(getComputedStyle(card).paddingBottom)||14:14);
  var pie=(document.getElementById('scr_pie')?document.getElementById('scr_pie').offsetHeight+10:34);
  var availH=Math.max(360,window.innerHeight*0.97-arriba-pie-4);
- var k=Math.min(availW/430,availH/932,1);
+ var k=Math.min(availW/_scrW,availH/_scrH,1);
  var fr=document.getElementById('scr_frame');if(!fr)return;
  fr.style.transform='scale('+k+')';
  var w=document.getElementById('scr_wrap');
- w.style.width=(430*k)+'px';w.style.height=(932*k)+'px';
+ w.style.width=(_scrW*k)+'px';w.style.height=(_scrH*k)+'px';
+ var pie=document.getElementById('scr_pie');if(pie)pie.textContent=_scrW===430&&_scrH===932?'430 × 932 · IPHONE 16 PRO MAX':(_scrW+' × '+_scrH+' · PANTALLA WEB');
+ fr.style.width=_scrW+'px';fr.style.height=_scrH+'px';
 }
 window.addEventListener('resize',scrFit);
 async function openPantalla(proy,archivo){
@@ -1213,6 +1223,7 @@ async function openPantalla(proy,archivo){
  try{
   var r=await fetch(base+'/pantallas/'+archivo+'?v='+Date.now());
   var html=await r.text();
+  _scrTam(archivo,html);scrFit();
   if(!/<base /i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+base+'/pantallas/">');
   html=html.replace(/<\/head>/i,'<style id="cr-noscroll">::-webkit-scrollbar{width:0!important;height:0!important}html{scrollbar-width:none!important}</style></head>');
   var fr=document.getElementById('scr_frame');
