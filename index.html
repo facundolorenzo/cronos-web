@@ -1637,12 +1637,15 @@ function edFont(f){
    var nv=Math.max(7,Math.round(cur*f*10)/10);
    el.style.fontSize=nv+'px';el.dataset.cfs=nv;el.dataset.ced='1';
   }else{
+   /* paso fino: ±4% por toque, para bajar o subir de a poco */
    var s0=parseFloat(el.dataset.cs||1);
-   var s=Math.min(3,Math.max(0.3,Math.round(s0*f*100)/100));
+   var s=Math.min(3,Math.max(0.2,Math.round((s0+(f<1?-0.04:0.04))*100)/100));
    el.dataset.cs=s;el.dataset.ced='1';_edApplyT(el);
   }
  });
  _edHandles();
+ /* tamaño en vivo en la etiqueta */
+ try{var rr=_edSel.getBoundingClientRect();var tg=_edDoc.querySelector('.cr-tag');if(tg)tg.textContent=Math.round(rr.width)+' × '+Math.round(rr.height);}catch(e){}
 }
 function _edPath(el){
  var parts=[];var cur=el;
