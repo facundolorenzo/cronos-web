@@ -1251,6 +1251,40 @@ function _edLinks(proy){
 }
 var _edMoved=false,_edRs=null,_edSels=[],_edMulti=false,_edHist=[];
 function _edNombre(el){var t=(el.tagName||'').toLowerCase();if(/^(h1|h2|h3|h4|h5|h6|p|span|small|label|b|i|strong|em)$/.test(t))return 'TEXTO';if(t==='button'||t==='a')return 'BOTÓN';if(t==='img')return 'IMAGEN';if(t==='input'||t==='textarea'||t==='select')return 'CAMPO';return 'CAJA';}
+/* ¿este elemento pinta algo en pantalla? (fondo, borde, sombra, imagen o texto propio). Las cajas transparentes que solo envuelven NO cuentan. */
+function _edPinta(el){
+ try{
+  if(!el||el===_edDoc.body||el===_edDoc.documentElement||!el.tagName)return false;
+  var t=el.tagName.toLowerCase();
+  if(/^(img|svg|video|canvas|input|select|textarea|picture|i|use|path)$/.test(t))return true;
+  var cs=_edDoc.defaultView.getComputedStyle(el);
+  if(cs.backgroundImage&&cs.backgroundImage!=='none')return true;
+  var bc=cs.backgroundColor||'';
+  if(bc&&bc!=='transparent'&&!/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*0\s*\)/.test(bc))return true;
+  if(parseFloat(cs.borderTopWidth)>0&&cs.borderTopStyle!=='none')return true;
+  if(cs.boxShadow&&cs.boxShadow!=='none')return true;
+  for(var i=0;i<el.childNodes.length;i++){var n=el.childNodes[i];if(n.nodeType===3&&n.textContent.trim())return true;}
+ }catch(e){}
+ return false;
+}
+/* elemento REAL bajo el dedo: salta las cajas transparentes (p. ej. un contenedor del tablero que quedó encima de la tarjeta) */
+function _edHit(e){
+ try{
+  var p=e.touches?e.touches[0]:e;
+  var lista=_edDoc.elementsFromPoint(p.clientX,p.clientY)||[];
+  var vw=_edDoc.documentElement.clientWidth||430,vh=_edDoc.documentElement.clientHeight||932;
+  for(var i=0;i<lista.length;i++){
+   var el=lista[i];var cn=el.className;
+   if(typeof cn==='string'&&cn.indexOf('cr-')===0)continue;
+   if(el===_edDoc.body||el===_edDoc.documentElement)return el;
+   if(!_edPinta(el))continue;
+   var r=el.getBoundingClientRect();
+   if(r.width>=vw*0.95&&r.height>=vh*0.9)return _edDoc.body; /* el marco del teléfono = fondo */
+   return el;
+  }
+ }catch(e2){}
+ return e.target;
+}
 function _edComp(el){
  var cur=el,comp=null;
  var vw=0;try{vw=_edDoc.documentElement.clientWidth||430;}catch(e){vw=430;}
@@ -1425,7 +1459,7 @@ function _edPrep(){
  _edDoc.addEventListener('click',function(e){
   if(!_edOn)return;
   var cn=e.target.className;if(typeof cn==='string'&&cn.indexOf('cr-')===0)return;
-  var el=e.target;
+  var el=_edHit(e)||e.target;
   if(el.getAttribute&&el.getAttribute('contenteditable')==='true')return;
   e.preventDefault();e.stopPropagation();
   if(_edMoved){_edMoved=false;return;}
@@ -1441,7 +1475,7 @@ function _edPrep(){
   else _edSelect(comp,add);
  },true);
  var start=function(e){
-  if(!_edOn||!_edSels.length)return;var t=e.target;
+  if(!_edOn||!_edSels.length)return;var t=_edHit(e)||e.target;
   var tc=t.className;if(typeof tc==='string'&&tc.indexOf('cr-')===0)return;
   if(t.getAttribute&&t.getAttribute('contenteditable')==='true')return;
   var dentro=_edSels.some(function(s){return s===t||s.contains(t);});
@@ -1525,7 +1559,7 @@ function _edPrep(){
  _edDoc.addEventListener('dblclick',function(e){
   if(!_edOn)return;
   var cn=e.target.className;if(typeof cn==='string'&&cn.indexOf('cr-')===0)return;
-  var el=e.target;
+  var el=_edHit(e)||e.target;
   if(el.getAttribute&&el.getAttribute('contenteditable')==='true')return;
   e.preventDefault();e.stopPropagation();
   if(el===_edDoc.body||el===_edDoc.documentElement)return;
