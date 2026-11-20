@@ -1427,7 +1427,9 @@ function _edPrep(){
   if(el===_edDoc.body||el===_edDoc.documentElement){if(!add)_edDeselect();return;}
   var comp=_edComp(el);
   if(!add&&_edSels.length===1&&_edSels[0]===comp){
-   if(_edNombre(comp)==='TEXTO')_edEditarTexto(comp);
+   /* ya está seleccionado: si tocaste algo ADENTRO (nombre, reloj, ícono) se selecciona esa parte sola; si tocaste lo mismo, texto → editar, caja → subir al padre */
+   if(el!==comp&&comp.contains(el))_edSelect(el,false);
+   else if(_edNombre(comp)==='TEXTO')_edEditarTexto(comp);
    else if(comp.parentElement&&comp.parentElement!==_edDoc.body)_edSelect(comp.parentElement,false);
   }
   else _edSelect(comp,add);
