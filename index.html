@@ -1140,7 +1140,7 @@ async function openEtapa(proy,etapa,rol){
 }
 /* --- recorrido: pantallas en orden, una al lado de la otra --- */
 var _pantFiles=[],_pantProy='';
-var ORDEN_PANT=['intro','splash','login','entrar','idioma','registro','onboard','home','inicio','desafiar','buscar','espera','jugar','partida','tablero','fin','resultado','revancha','activar','billetera','wallet','deposito','retiro','perfil','amigos','invitar','ranking','temporada','ajustes','beneficio','componentes'];
+var ORDEN_PANT=['carga','intro','splash','portada','planes','login','entrar','idioma','registro','onboard','home','inicio','desafiar','buscar','espera','jugar','partida','tablero','fin','resultado','revancha','activar','billetera','wallet','deposito','retiro','perfil','amigos','invitar','ranking','temporada','ajustes','beneficio','componentes'];
 function _ordenPant(files){
  return files.slice().sort(function(a,b){
   function ix(n){n=n.toLowerCase();for(var i=0;i<ORDEN_PANT.length;i++)if(n.indexOf(ORDEN_PANT[i])>=0)return i;return 99;}
