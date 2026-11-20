@@ -1264,6 +1264,13 @@ function _edPinta(el){
   if(parseFloat(cs.borderTopWidth)>0&&cs.borderTopStyle!=='none')return true;
   if(cs.boxShadow&&cs.boxShadow!=='none')return true;
   for(var i=0;i<el.childNodes.length;i++){var n=el.childNodes[i];if(n.nodeType===3&&n.textContent.trim())return true;}
+  /* fondo dibujado con ::before / ::after (tarjetas que pintan su fondo con un pseudo-elemento) */
+  var ps=['::before','::after'];
+  for(var k=0;k<ps.length;k++){
+   var cp=_edDoc.defaultView.getComputedStyle(el,ps[k]);
+   if(!cp||!cp.content||cp.content==='none'||cp.content==='normal')continue;
+   if((cp.backgroundImage&&cp.backgroundImage!=='none')||(cp.backgroundColor&&cp.backgroundColor!=='transparent'&&!/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*0\s*\)/.test(cp.backgroundColor))||(parseFloat(cp.borderTopWidth)>0&&cp.borderTopStyle!=='none')||(cp.boxShadow&&cp.boxShadow!=='none'))return true;
+  }
  }catch(e){}
  return false;
 }
