@@ -732,11 +732,12 @@ body{background:#080a0b}
       rec.start();
     }catch(e){}
   }
-  function stopRec(){recording=false;mic.classList.remove('listening');setState('');speak(false);if(rec){try{rec.onend=null;rec.stop();}catch(e){}rec=null;}}
+  function stopRec(){recording=false;setTimeout(function(){var q=(ta.value||'').trim();if(q&&/report|reporte|qu[eé] pas[oó]|c[oó]mo va|novedad/i.test(q))send.onclick();},150);mic.classList.remove('listening');setState('');speak(false);if(rec){try{rec.onend=null;rec.stop();}catch(e){}rec=null;}}
   mic.onclick=()=>{if(recording)stopRec();else startRec();};
   ta.addEventListener('focus',()=>box.classList.add('on'));
   send.onclick=()=>{const q=ta.value.trim();if(!q){ta.focus();return;}
     if(recording)stopRec();fin='';
+    if(/report|reporte|qu[eé] pas[oó]|c[oó]mo va|novedad/i.test(q)){ta.value='';box.classList.remove('on');btn.textContent='Reporte Shai';btn.onclick();return;}
     sum.innerHTML='<b>Vos:</b> «'+q+'»';setState('Reportando…');speak(true);btn.textContent='Cerrar';box.classList.remove('on');ta.value='';
     window._shaiEnviar(q).then(function(msg){sum.innerHTML='<b>Shai:</b> '+msg;});
   };
@@ -961,6 +962,7 @@ async function fetchEvs(){
  var r=await _supa.from('eventos').select('*').order('created_at',{ascending:false}).limit(12);
  if(r.error){el.innerHTML='<div class="inc-empty">El cable todavía no está conectado (falta la tabla <b>eventos</b>). Corré <b>cable/eventos.sql</b> en Supabase y recargá.</div>';return;}
  var evs=r.data||[];_evs=evs;renderIncs();try{renderShaiFeed();}catch(e){}
+ try{_shaiAutoReporte();}catch(e){}
  if(!evs.length){el.innerHTML='<div class="inc-empty">Sin avisos todavía. Cuando un agente trabaje, lo ves acá.</div>';return;}
  el.innerHTML=evs.map(function(e){return '<div class="card rowcard" style="cursor:default"><div class="rc-top"><div><div class="rc-nm">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="rc-sub">'+_evAgo(e.created_at)+'</div></div>'+_evBadge(e.estado)+'</div>'+(e.mensaje?'<div class="rc-say">'+_esc(e.mensaje)+'</div>':'')+'</div>';}).join('');
 }
@@ -977,6 +979,17 @@ async function initInc(){
  _evTimer=setInterval(function(){fetchIncs();fetchEvs();if(_chatProy&&document.getElementById('incmodal').classList.contains('open'))cargarChat(_chatProy);},20000);
 }
 /* --- SHAI: reporte real, feed real, aprobar y voz --- */
+var _shaiAutoHecho=false;
+function _shaiAutoReporte(){
+ if(_shaiAutoHecho||!_evs||!_evs.length)return;_shaiAutoHecho=true;
+ var ult=_evs[0].created_at,visto='';try{visto=localStorage.getItem('shai_visto')||'';}catch(e){}
+ try{localStorage.setItem('shai_visto',ult);}catch(e){}
+ if(visto&&visto>=ult)return;
+ var h=new Date().getHours(),saludo=h<12?'Buen día':h<19?'Buenas tardes':'Buenas noches';
+ var btn=document.getElementById('repbtn'),sum=document.getElementById('shaisum');if(!btn||!sum)return;
+ setTimeout(function(){sum.innerHTML='<b>'+saludo+', Facu.</b> Hay novedades de la fábrica. Te cuento…';btn.textContent='Reporte Shai';setTimeout(function(){btn.onclick();},1200);},800);
+}
+
 var _SHAI_EST={trabajando:'prog',esperando_ok:'check',aprobado:'done',terminado:'done',error:'bug'};
 function _shaiCorto(t,n){t=String(t||'').replace(/\s+/g,' ').trim();return t.length>n?t.slice(0,n-1)+'…':t;}
 function renderShaiFeed(){
