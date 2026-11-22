@@ -667,6 +667,7 @@ body{background:#080a0b}
         <input type="file" id="scr_file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="edArchivo(this)">
 
       </span>
+      <button class="mbtn-gh" id="scr_dl" onclick="edDescargar()" title="Descargar esta pantalla como imagen PNG" style="padding:7px 12px;font-size:11.5px">⬇ Descargar</button>
       <button class="mbtn-pri" onclick="edGuardar()" style="padding:7px 12px;font-size:11.5px">Guardar</button>
     </div>
     <div id="scr_zone" style="display:flex;justify-content:center">
@@ -1230,6 +1231,41 @@ async function openPantalla(proy,archivo){
   fr.srcdoc=html;
   fr.onload=function(){_edDoc=fr.contentDocument;_edPrep();_edLinks(proy);};
  }catch(e){alert('No se pudo cargar la pantalla.');}
+}
+// Descargar la pantalla abierta como PNG (430×932 a 3x). Usa html2canvas dentro del iframe.
+async function edDescargar(){
+ var fr=document.getElementById('scr_frame');
+ var win=fr&&fr.contentWindow, doc=fr&&fr.contentDocument;
+ if(!win||!doc||!doc.body){alert('Todavía no cargó la pantalla.');return;}
+ var btn=document.getElementById('scr_dl');var txt=btn.textContent;btn.textContent='⏳ Generando…';btn.disabled=true;
+ // Sacar marcas del editor (selección, guías) antes de capturar
+ var sels=(_edSels||[]).slice();sels.forEach(function(x){try{x.style.outline='';}catch(e){}});
+ try{_edGuiasOff();}catch(e){}
+ var handles=doc.querySelectorAll('.cr-h,.cr-tag,.cr-gv,.cr-gh');var hid=[];
+ for(var i=0;i<handles.length;i++){hid.push([handles[i],handles[i].style.display]);handles[i].style.display='none';}
+ try{
+  if(!win.html2canvas){
+   await new Promise(function(ok,ko){
+    var s=doc.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload=ok;s.onerror=function(){ko(new Error('html2canvas'));};
+    doc.head.appendChild(s);
+   });
+  }
+  var cv=await win.html2canvas(doc.documentElement,{width:_scrW,height:_scrH,windowWidth:_scrW,windowHeight:_scrH,scale:3,useCORS:true,allowTaint:false,backgroundColor:'#111111',scrollX:0,scrollY:0});
+  var nombre=((_edProy||'pantalla')+'-'+(_edPant||'pantalla').replace(/\.html$/i,'')).replace(/[^\w\-]+/g,'_')+'.png';
+  await new Promise(function(ok){
+   cv.toBlob(function(b){
+    var url=URL.createObjectURL(b);var a=document.createElement('a');a.href=url;a.download=nombre;document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);ok();},800);
+   },'image/png');
+  });
+ }catch(e){alert('No se pudo generar la imagen. Probá de nuevo o sacá una captura de pantalla.');}
+ finally{
+  hid.forEach(function(p){p[0].style.display=p[1];});
+  sels.forEach(function(x){try{x.style.outline='2px solid #35D29A';}catch(e){}});
+  btn.textContent=txt;btn.disabled=false;
+ }
 }
 // Links dentro de la pantalla: en edición no navegan; en vista, si apuntan a otra pantalla la abren en el visor (nunca en crudo).
 function _edLinks(proy){
