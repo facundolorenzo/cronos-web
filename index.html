@@ -715,10 +715,13 @@ body{background:#080a0b}
   const st=document.getElementById('shaistate'),stx=document.getElementById('shaistatetx');
   const box=document.getElementById('askbox'),ta=document.getElementById('asktext'),send=document.getElementById('sendbtn');
   const DEF='Tocá para que te <b>explique</b>.';
-  const REP='<b>3 cosas</b> te esperan y 1 freno (el pago de Acme-CRM). Vas 83% a la primera y $55 de gasto.';
   function setState(txt){if(txt){stx.textContent=txt;st.classList.add('on');}else{st.classList.remove('on');}}
   function speak(on){speaking=on;}
-  btn.onclick=()=>{const rep=btn.textContent==='Reporte Shai';if(rep){sum.innerHTML=REP;btn.textContent='Cerrar';speak(true);setState('Reportando…');}else{sum.innerHTML=DEF;btn.textContent='Reporte Shai';speak(false);setState('');}};
+  btn.onclick=async()=>{const rep=btn.textContent==='Reporte Shai';
+    if(rep){btn.textContent='Cerrar';speak(true);setState('Reportando…');sum.innerHTML='Miro qué hizo la fábrica…';
+      const r=await window._shaiReporte();sum.innerHTML=r.html;window._shaiHablar(r.texto);}
+    else{sum.innerHTML=DEF;btn.textContent='Reporte Shai';speak(false);setState('');window._shaiCallar();}};
+  window._shaiSpeak=speak;window._shaiState=setState;
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,recording=false,denied=false,fin='';
   function startRec(){recording=true;box.classList.add('on');mic.classList.add('listening');setState('Escuchando…');speak(true);
     if(!SR||denied){ta.focus();return;}
@@ -735,7 +738,7 @@ body{background:#080a0b}
   send.onclick=()=>{const q=ta.value.trim();if(!q){ta.focus();return;}
     if(recording)stopRec();fin='';
     sum.innerHTML='<b>Vos:</b> «'+q+'»';setState('Reportando…');speak(true);btn.textContent='Cerrar';box.classList.remove('on');ta.value='';
-    setTimeout(()=>{sum.innerHTML='<b>Shai:</b> dale, lo busco.';},700);
+    window._shaiEnviar(q).then(function(msg){sum.innerHTML='<b>Shai:</b> '+msg;});
   };
 })();
 
@@ -840,6 +843,7 @@ function buildFab(){
   {who:'Tony',what:'Cuidando Priztine y MixPilot',st:'prog'},
   {who:'Mateo',what:'Propuesta de Nuvó lista para Lorenzo',st:'done'}];
  document.getElementById('ffeed').innerHTML=feed.map(function(t){var s=FB[t.st];return '<div class="fcard" style="--fc:'+s.c+'"><div class="fwho">'+t.who+'</div><div class="fwhat">'+t.what+'</div><div class="fstate"><span class="fsdot"></span>'+s.t+'</div></div>';}).join('');
+ try{if(_evs&&_evs.length)renderShaiFeed();}catch(e){}
 }
 function fabNode(id){if(typeof AG!=='undefined'&&AG[id])openAg(id);}
 (function(){if(document.readyState!=='loading')buildFab();else document.addEventListener('DOMContentLoaded',buildFab);})();
@@ -956,7 +960,7 @@ async function fetchEvs(){
  if(!_supa)return;var el=document.getElementById('evlist');if(!el)return;
  var r=await _supa.from('eventos').select('*').order('created_at',{ascending:false}).limit(12);
  if(r.error){el.innerHTML='<div class="inc-empty">El cable todavía no está conectado (falta la tabla <b>eventos</b>). Corré <b>cable/eventos.sql</b> en Supabase y recargá.</div>';return;}
- var evs=r.data||[];_evs=evs;renderIncs();
+ var evs=r.data||[];_evs=evs;renderIncs();try{renderShaiFeed();}catch(e){}
  if(!evs.length){el.innerHTML='<div class="inc-empty">Sin avisos todavía. Cuando un agente trabaje, lo ves acá.</div>';return;}
  el.innerHTML=evs.map(function(e){return '<div class="card rowcard" style="cursor:default"><div class="rc-top"><div><div class="rc-nm">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="rc-sub">'+_evAgo(e.created_at)+'</div></div>'+_evBadge(e.estado)+'</div>'+(e.mensaje?'<div class="rc-say">'+_esc(e.mensaje)+'</div>':'')+'</div>';}).join('');
 }
@@ -972,6 +976,48 @@ async function initInc(){
  if(_evTimer)clearInterval(_evTimer);
  _evTimer=setInterval(function(){fetchIncs();fetchEvs();if(_chatProy&&document.getElementById('incmodal').classList.contains('open'))cargarChat(_chatProy);},20000);
 }
+/* --- SHAI: reporte real, feed real, aprobar y voz --- */
+var _SHAI_EST={trabajando:'prog',esperando_ok:'check',aprobado:'done',terminado:'done',error:'bug'};
+function _shaiCorto(t,n){t=String(t||'').replace(/\s+/g,' ').trim();return t.length>n?t.slice(0,n-1)+'…':t;}
+function renderShaiFeed(){
+ var el=document.getElementById('ffeed');if(!el||!_evs||!_evs.length)return;
+ var FB={done:{c:"var(--esm)",t:"Hecho · verificado"},prog:{c:"#E8CE82",t:"En progreso"},check:{c:"var(--teal)",t:"Te espera"},bug:{c:"var(--rojo)",t:"Problema · te necesita"}};
+ el.innerHTML=_evs.slice(0,6).map(function(e){var k=_SHAI_EST[e.estado]||'prog',s=FB[k];
+  return '<div class="fcard" style="--fc:'+s.c+';cursor:pointer" onclick="shaiAbrir(\''+_esc(e.proyecto)+'\')"><div class="fwho">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="fwhat">'+_esc(_shaiCorto(e.mensaje||'',110))+'</div><div class="fstate"><span class="fsdot"></span>'+s.t+' · '+_evAgo(e.created_at)+'</div></div>';}).join('');
+}
+function shaiAbrir(proy){try{var x=(_incs||[]).find(function(i){return (i.nombre||'').toUpperCase()===String(proy).toUpperCase();});if(x){openIncDB(x.id);return;}}catch(e){}try{location.hash='#incubacion';}catch(e){}}
+window._shaiReporte=async function(){
+ if(!_supa||!_evs||!_evs.length)return {html:'Todavía no hay avisos de la fábrica. Cuando un agente trabaje, te lo cuento acá.',texto:'Todavía no hay avisos de la fábrica.'};
+ var porProy={};_evs.forEach(function(e){if(!porProy[e.proyecto])porProy[e.proyecto]=e;});
+ var partes=[],voz=[],botones='';
+ for(var p in porProy){var e=porProy[p];
+  var est=e.estado==='esperando_ok'?'te espera':e.estado==='trabajando'?'está trabajando':e.estado==='error'?'tiene un problema':e.estado;
+  var linea='<b>'+_esc(p)+'</b>: '+_esc(e.etapa)+' '+est+' ('+_evAgo(e.created_at)+').';
+  var ult='';try{var m=await _supa.from('mensajes').select('texto,created_at,rol').eq('proyecto',p).neq('rol','facu').order('created_at',{ascending:false}).limit(1);if(m.data&&m.data[0])ult=m.data[0].texto;}catch(x){}
+  if(ult)linea+=' Último del director: «'+_esc(_shaiCorto(ult,160))+'»';
+  partes.push(linea);voz.push(p+': '+e.etapa+' '+est+'. '+(ult?'El director dice: '+_shaiCorto(ult,220):''));
+  if(e.estado==='esperando_ok')botones+='<button class="rep-btn" style="margin-top:8px;background:linear-gradient(135deg,#35D29A,#2BAF80);color:#06130d;border:0" onclick="shaiAprobar(\''+_esc(p)+'\')">✅ Aprobar '+_esc(p)+'</button>';
+ }
+ return {html:partes.join('<br>')+(botones?'<div>'+botones+'</div>':''),texto:voz.join(' ')};
+};
+window._shaiHablar=function(t){try{if(!('speechSynthesis' in window))return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='es-US';u.rate=1.02;var vs=speechSynthesis.getVoices().filter(function(v){return /^es/i.test(v.lang);});if(vs.length)u.voice=vs[0];u.onend=function(){try{window._shaiSpeak(false);window._shaiState('');}catch(e){}};speechSynthesis.speak(u);}catch(e){}};
+window._shaiCallar=function(){try{speechSynthesis.cancel();}catch(e){}};
+async function shaiAprobar(proy){
+ if(!_supa)return;if(!confirm('¿Aprobar lo que hizo '+proy+' y que avance?'))return;
+ var txt='APRUEBO. Antes de firmar: leé mis ajustes del panel con cable/leer-ajustes.ps1 y aplicalos si hay. Después firmá con fecha, subí todo con cable/subir.ps1 y avanzá a lo que sigue.';
+ var r=await _supa.from('mensajes').insert({proyecto:proy,rol:'facu',texto:txt,estado:'pendiente'});
+ if(r.error){alert('No se pudo enviar: '+r.error.message);return;}
+ var sum=document.getElementById('shaisum');if(sum)sum.innerHTML='<b>Shai:</b> listo, le mandé tu aprobación al director de '+_esc(proy)+'. Sigue solo.';
+ window._shaiHablar('Listo, aprobado. '+proy+' sigue solo.');fetchEvs();
+}
+window._shaiEnviar=async function(q){
+ if(!_supa||!_evs||!_evs.length)return 'todavía no hay ningún proyecto andando para mandarle eso.';
+ var proy=_evs[0].proyecto;
+ if(/^(apr|ok|dale|si|sí)/i.test(q.trim())){await shaiAprobar(proy);return 'aprobado '+proy+'.';}
+ var r=await _supa.from('mensajes').insert({proyecto:proy,rol:'facu',texto:q,estado:'pendiente'});
+ if(r.error)return 'no pude mandarlo: '+_esc(r.error.message);
+ return 'se lo mandé al director de '+_esc(proy)+'.';
+};
 /* --- CHAT CON EL DIRECTOR (tabla mensajes; el lanzador en la compu hace el resto) --- */
 var _chatProy='';
 async function cargarChat(proy){
