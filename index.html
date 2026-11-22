@@ -358,6 +358,7 @@ body{background:#080a0b}
   <aside class="sidebar">
     <div class="logo"><div class="lt">CRONOS</div><div class="ls">Fábrica</div></div>
     <div class="navitem on" data-v="tablero" onclick="nav('tablero',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Tablero</div>
+    <div class="navitem" data-v="decisiones" onclick="nav('decisiones',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Decisiones<span id="dec_badge" style="display:none;margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--rojo);color:#0A0C0D;font-size:11px;font-weight:700;align-items:center;justify-content:center"></span></div>
     <div class="navitem" data-v="fabrica" onclick="nav('fabrica',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Fábrica</div>
     <div class="navitem" data-v="incubacion" onclick="nav('incubacion',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.8.7-1 1.2-1 2.5H9c0-1.3-.2-1.8-1-2.5A6 6 0 0 1 12 3Z"/></svg>Incubación</div>
     <div class="navitem" data-v="proyectos" onclick="nav('proyectos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>Proyectos</div>
@@ -384,6 +385,7 @@ body{background:#080a0b}
     <!-- ===== TABLERO ===== -->
     <section class="view on" id="view-tablero">
       <div class="phead"><div><h1>Tablero</h1><p>Qué está pasando en la fábrica</p></div><div class="when"><div class="d" id="tdate">—</div><div class="t"><span id="ttime">—</span> · <span class="dot">en vivo</span></div></div></div>
+      <div id="tb_dec"></div>
       <div class="kpis" id="tb_kpis"></div>
       <div class="zonas" id="tb_zonas"></div>
       <div class="analytics">
@@ -409,6 +411,13 @@ body{background:#080a0b}
     </section>
 
     <!-- ===== FÁBRICA ===== -->
+    <section class="view" id="view-decisiones">
+      <div class="phead"><div><h1 id="dec_h1">Decisiones</h1><p>Lo que la fábrica necesita que elijas. Tocás y sigue sola.</p></div><div class="when"><div class="d" id="dec_cnt">—</div><div class="t"><span class="dot">en vivo</span></div></div></div>
+      <div id="dec_list" style="display:flex;flex-direction:column;gap:18px"><div class="inc-empty">Cargando…</div></div>
+      <div id="dec_send"></div>
+      <div id="dec_hechas"></div>
+    </section>
+
     <section class="view" id="view-fabrica">
       <div class="phead"><div><h1>Fábrica</h1><p>La oficina de Cronos · cada sala una etapa, todas conectadas al cerebro</p></div><div class="when"><div class="d" id="fab_head">16 agentes · <b style="color:var(--esm)">0 trabajando</b></div><div class="t">corre en Opus · Fable</div></div></div>
       <div class="office" id="office">
@@ -875,6 +884,84 @@ function _fabPipelineHTML(proyecto){
 }
 function _evBadge(estado){var m={trabajando:['Trabajando',''],esperando_ok:['Te espera','esp'],aprobado:['Aprobado','go'],terminado:['Terminado','go'],error:['Problema','esp']};var b=m[estado]||[estado,''];return '<span class="ec '+b[1]+'">'+_esc(b[0])+'</span>';}
 function _evAgo(ts){var s=(Date.now()-new Date(ts).getTime())/1000;if(s<60)return 'recién';var m=Math.floor(s/60);if(m<60)return 'hace '+m+' min';var h=Math.floor(m/60);if(h<24)return 'hace '+h+' h';return 'hace '+Math.floor(h/24)+' días';}
+
+/* ===== DECISIONES: lo que la fábrica necesita que Facu elija ===== */
+function _hexL(h){h=String(h||'').replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c;}).join('');var c=[0,2,4].map(function(i){var v=parseInt(h.substr(i,2),16)/255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});return .2126*c[0]+.7152*c[1]+.0722*c[2];}
+function _contraste(a,b){var x=_hexL(a),y=_hexL(b);if(isNaN(x)||isNaN(y))return null;var hi=Math.max(x,y),lo=Math.min(x,y);return (hi+.05)/(lo+.05);}
+function _parseDec(txt){var m=/```decisiones\s*([\s\S]*?)```/.exec(txt||'');if(!m)return null;try{var a=JSON.parse(m[1]);return Array.isArray(a)?a:null;}catch(e){return null;}}
+function _resumen(txt){var t=String(txt||'');var i=t.search(/EN CORTO/i);if(i>=0)t=t.slice(i+9);var j=t.search(/\n##\s/);if(j>0)t=t.slice(0,j);return t.replace(/\*\*/g,'').trim().slice(0,900);}
+var _dec={pend:[],hechas:[]},_decSel={};
+async function fetchDec(){
+ if(!_supa)return;
+ var r=await _supa.from('mensajes').select('proyecto,rol,texto,created_at').order('created_at',{ascending:false}).limit(80);
+ if(r.error)return;
+ var ms=r.data||[],resp={},hechas=[],pend=[],visto={};
+ ms.forEach(function(m){if(m.rol!=='facu')return;var re=/DECISI[OÓ]N\s+([^\s:]+):\s*([^\n]*)/gi,d,algo=false;while((d=re.exec(m.texto))){algo=true;resp[m.proyecto+'/'+d[1]]=1;hechas.push({proy:m.proyecto,txt:d[2],t:m.created_at});}
+  if(!algo&&/APRUEBO/i.test(m.texto))hechas.push({proy:m.proyecto,txt:m.texto.replace(/^@\w+\s*/,'').split('\n')[0].slice(0,160),t:m.created_at});});
+ ms.forEach(function(m){if(m.rol!=='director'||visto[m.proyecto])return;visto[m.proyecto]=1;
+  var luego=ms.filter(function(x){return x.proyecto===m.proyecto&&x.rol==='facu'&&x.created_at>m.created_at;});
+  if(luego.some(function(x){return /APRUEBO/i.test(x.texto);}))return;
+  var arr=_parseDec(m.texto);
+  if(arr){arr.forEach(function(d){if(d&&d.id&&!resp[m.proyecto+'/'+d.id])pend.push(Object.assign({proy:m.proyecto,t:m.created_at},d));});}
+  else if(!luego.length&&/decid|necesito|tu OK|aprob/i.test(m.texto))pend.push({proy:m.proyecto,t:m.created_at,id:'general',general:true,pregunta:'El director terminó y espera tu respuesta',libre:_resumen(m.texto)});
+ });
+ _dec={pend:pend,hechas:hechas.slice(0,8)};renderDec();
+}
+function _muestraHTML(o){var mu=o.muestra||{};
+ if(mu.tipo==='color'){var f=mu.fondo||'#F4F1EA',c=mu.color||'#000',cr=_contraste(c,f),ok=cr&&cr>=4.5;
+  return '<div style="background:'+_esc(f)+';border-radius:12px;padding:20px 18px;display:flex;flex-direction:column;gap:4px;color:#141413"><span style="font-size:34px;font-weight:700;line-height:1;color:'+_esc(c)+'">'+_esc(mu.texto||'Aa')+'</span>'+(mu.texto2?'<span style="font-size:16px;font-weight:600;color:'+_esc(c)+'">'+_esc(mu.texto2)+'</span>':'')+'</div>'
+   +(cr?'<div style="font-size:12px;font-weight:600;color:'+(ok?'var(--esmb)':'var(--rojo)')+'">'+cr.toFixed(1).replace('.',',')+' : 1 · '+(ok?'se lee bien':'se lee poco')+'</div>':'');}
+ if(mu.tipo==='texto')return '<div style="font-size:14.5px;line-height:1.5;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.03)">'+(mu.antes?'<span style="color:var(--rojo);text-decoration:line-through">'+_esc(mu.antes)+'</span><br>':'')+'<span style="color:var(--esmb)">'+_esc(mu.despues||'')+'</span></div>';
+ if(mu.tipo==='imagen'&&/^https:\/\/[^"'<>\s]+$/.test(mu.url||''))return '<img src="'+mu.url+'" alt="" style="width:100%;border-radius:12px;display:block;background:#000">';
+ return '';
+}
+function renderDec(){
+ var P=_dec.pend,n=P.length;
+ var b=document.getElementById('dec_badge');if(b){b.style.display=n?'inline-flex':'none';b.textContent=n;}
+ var cnt=document.getElementById('dec_cnt');if(cnt)cnt.textContent=n?(n+' te espera'+(n>1?'n':'')):'al día';
+ var h1=document.getElementById('dec_h1');if(h1)h1.textContent=n?('Te espera'+(n>1?'n ':' ')+n+' decisi'+(n>1?'ones':'ón')):'Decisiones';
+ var tb=document.getElementById('tb_dec');
+ if(tb)tb.innerHTML=n?'<div onclick="nav(\'decisiones\')" style="cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:18px 22px;border-radius:16px;border:1px solid rgba(224,166,78,.45);background:rgba(224,166,78,.08)"><span style="width:10px;height:10px;border-radius:5px;background:var(--amber);box-shadow:0 0 12px var(--amber)"></span><span style="flex:1 1 260px;font-size:15px"><b>'+_esc(P[0].proy)+'</b>: la fábrica espera '+n+' decisi'+(n>1?'ones tuyas':'ón tuya')+'. Tocá y sigue sola.</span><span style="font-weight:700;color:var(--amber)">Decidir ahora →</span></div>':'';
+ var L=document.getElementById('dec_list');if(!L)return;
+ if(!n){L.innerHTML='<div class="inc-empty">Nada te espera. Cuando la fábrica necesite que elijas algo, aparece acá y Shai te avisa.</div>';}
+ else L.innerHTML=P.map(function(d,i){
+  var k=d.proy+'/'+d.id,sel=_decSel[k];
+  var head='<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.16em;color:var(--mut)">'+_esc(String(d.proy).toUpperCase())+' · '+(i+1)+' DE '+n+(d.tema?' · '+_esc(String(d.tema).toUpperCase()):'')+'</div>'
+   +'<h2 style="margin:4px 0 0;font-size:21px;font-weight:600">'+_esc(d.pregunta||'')+'</h2>'
+   +(d.porque?'<p style="margin:6px 0 0;font-size:14.5px;color:var(--mut);line-height:1.5">'+_esc(d.porque)+'</p>':'');
+  if(d.general){
+   return '<div class="card" style="gap:14px">'+head+'<div style="font-size:14px;line-height:1.55;white-space:pre-wrap;color:var(--texto)">'+_esc(d.libre||'')+'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:10px"><button class="mbtn-pri" style="flex:0 1 auto;padding:13px 22px" onclick="_decAprobarTodo('+i+')">✅ Apruebo lo que recomendás</button><button class="mbtn-gh" onclick="_decAbrirChat('+i+')">Leer completo y responder</button></div></div>';
+  }
+  var ops=(d.opciones||[]).map(function(o,j){var rec=d.recomendada===o.k,on=sel===o.k;
+   return '<div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:14px;border:'+(on?'2px solid var(--esm)':'1px solid var(--line)')+';background:'+(rec?'rgba(53,210,154,.04)':'rgba(255,255,255,.02)')+'">'
+    +'<div style="font-weight:600;font-size:15px">'+_esc(o.k)+' · '+_esc(o.txt||'')+(rec?' <span style="font-size:11px;color:var(--esmb);font-weight:700">· recomendada</span>':'')+'</div>'
+    +_muestraHTML(o)+(o.nota?'<div style="font-size:12.5px;color:var(--mut);line-height:1.45">'+_esc(o.nota)+'</div>':'')
+    +'<button onclick="_decPick('+i+','+j+')" style="margin-top:auto;height:46px;border-radius:10px;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;'+(on?'border:0;background:var(--esm);color:#06231a':'border:1px solid rgba(255,255,255,.14);background:transparent;color:var(--texto)')+'">'+(on?'✓ Elegida':'Elijo '+_esc(o.k))+'</button></div>';}).join('');
+  return '<div class="card" style="gap:14px">'+head+'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">'+ops+'</div>'
+   +(sel&&sel.indexOf('OTRA:')===0?'<div style="font-size:13px;color:var(--esmb)">✓ Vas a pedir: '+_esc(sel.slice(5))+'</div>':'')
+   +'<div><button class="mbtn-gh" onclick="_decOtra('+i+')">Otra cosa (escribir o dictar)</button></div></div>';
+ }).join('');
+ var sends=Object.keys(_decSel).filter(function(k){return P.some(function(d){return d.proy+'/'+d.id===k;});}).length,elegibles=P.filter(function(d){return !d.general;}).length;
+ var S=document.getElementById('dec_send');
+ if(S)S.innerHTML=elegibles?'<button class="mbtn-pri" '+(sends?'':'disabled ')+'onclick="_decMandar()" style="width:100%;padding:17px;font-size:15px;font-weight:700;border-radius:14px;opacity:'+(sends?1:.45)+'">Mandar a la fábrica ('+sends+' de '+elegibles+' elegidas)</button>':'';
+ var H=document.getElementById('dec_hechas');
+ if(H)H.innerHTML=_dec.hechas.length?'<div style="font-size:14px;font-weight:600;color:var(--mut);margin:10px 0 8px">Ya decidiste</div>'+_dec.hechas.map(function(x){return '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px"><span style="color:var(--esmb);font-weight:700">✓</span><span style="flex:1 1 240px;font-size:13.5px">'+_esc(x.proy)+' · '+_esc(x.txt)+'</span><span style="font-size:12px;color:var(--mut)">'+_evAgo(x.t)+'</span></div>';}).join(''):'';
+}
+function _decPick(i,j){var d=_dec.pend[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
+function _decOtra(i){var d=_dec.pend[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();renderDec();}}
+async function _decMandar(){
+ var por={};_dec.pend.forEach(function(d){var k=d.proy+'/'+d.id,v=_decSel[k];if(!v)return;var o=(d.opciones||[]).find(function(x){return x.k===v;});
+  (por[d.proy]=por[d.proy]||[]).push('DECISIÓN '+d.id+': '+(v.indexOf('OTRA:')===0?'otra cosa — '+v.slice(5):'elijo '+v+(o&&o.txt?' — '+o.txt:'')));});
+ var ps=Object.keys(por);if(!ps.length||!_supa)return;
+ for(var i=0;i<ps.length;i++){var r=await _supa.from('mensajes').insert({proyecto:ps[i],rol:'facu',texto:'@planificador Mis decisiones desde el panel:\n'+por[ps[i]].join('\n')+'\nAplicalas y seguí sin esperarme.',estado:'pendiente'});if(r.error){alert('No se pudo mandar: '+r.error.message);return;}}
+ _decSel={};fetchDec();
+}
+async function _decAprobarTodo(i){var d=_dec.pend[i];if(!_supa||!confirm('¿Aprobás lo que recomienda el director y que siga?'))return;
+ var r=await _supa.from('mensajes').insert({proyecto:d.proy,rol:'facu',texto:'@planificador APRUEBO lo que recomendaste en tu último reporte. Aplicalo y seguí sin esperarme.',estado:'pendiente'});if(r.error){alert(r.error.message);return;}fetchDec();}
+function _decAbrirChat(i){var d=_dec.pend[i];var x=(_incs||[]).find(function(z){return String(z.nombre).toUpperCase()===String(d.proy).toUpperCase();});if(x)openIncDB(x.id);}
+setInterval(function(){try{fetchDec();}catch(e){}},30000);
+
 async function fetchEvs(){
  if(!_supa)return;var el=document.getElementById('evlist');if(!el)return;
  var r=await _supa.from('eventos').select('*').order('created_at',{ascending:false}).limit(12);
@@ -883,6 +970,7 @@ async function fetchEvs(){
  try{_shaiAutoReporte();}catch(e){}
  try{renderTablero();}catch(e){}
  try{renderProyectos();}catch(e){}
+ try{fetchDec();}catch(e){}
  try{updateRooms();}catch(e){}
  if(!evs.length){el.innerHTML='<div class="inc-empty">Sin avisos todavía. Cuando un agente trabaje, lo ves acá.</div>';return;}
  el.innerHTML=evs.map(function(e){return '<div class="card rowcard" style="cursor:default"><div class="rc-top"><div><div class="rc-nm">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="rc-sub">'+_evAgo(e.created_at)+'</div></div>'+_evBadge(e.estado)+'</div>'+(e.mensaje?'<div class="rc-say">'+_esc(e.mensaje)+'</div>':'')+'</div>';}).join('');
@@ -992,7 +1080,7 @@ async function cargarChat(proy){
  el.innerHTML=ms.map(function(m){
   var mio=m.rol==='facu';
   var pend=mio&&m.estado==='pendiente'?' · <i>esperando al director…</i>':'';
-  return '<div style="align-self:'+(mio?'flex-end':'flex-start')+';max-width:92%;padding:9px 12px;border-radius:12px;background:'+(mio?'rgba(53,210,154,.12)':'rgba(255,255,255,.05)')+';white-space:pre-wrap">'+(mio?'':'<b style="color:var(--esmb);font-size:11px">DIRECTOR</b><br>')+(mio?_esc(m.texto):_mdLite(m.texto))+pend+'</div>';
+  return '<div style="align-self:'+(mio?'flex-end':'flex-start')+';max-width:92%;padding:9px 12px;border-radius:12px;background:'+(mio?'rgba(53,210,154,.12)':'rgba(255,255,255,.05)')+';white-space:pre-wrap">'+(mio?'':'<b style="color:var(--esmb);font-size:11px">DIRECTOR</b><br>')+(mio?_esc(m.texto):_mdLite(String(m.texto).replace(/```decisiones[\s\S]*?```/g,'(Las opciones están en la pestaña Decisiones)')))+pend+'</div>';
  }).join('');
  el.scrollTop=el.scrollHeight;
 }
