@@ -906,7 +906,7 @@ async function fetchDec(){
   if(luego.some(function(x){return /APRUEBO/i.test(x.texto);}))return;
   var arr=_parseDec(m.texto);
   if(arr){arr.forEach(function(d){if(d&&d.id&&!resp[m.proyecto+'/'+d.id])pend.push(Object.assign({proy:m.proyecto,t:m.created_at},d));});}
-  else if(!luego.length&&/decid|necesito|tu OK|aprob/i.test(m.texto))pend.push({proy:m.proyecto,t:m.created_at,id:'general',general:true,pregunta:'El director terminó y espera tu respuesta',libre:_resumen(m.texto)});
+  else if(!luego.length&&/decid|necesito|tu OK|aprob|elij|eleg[ií]|esperar|c[oó]mo seguir|frenad/i.test(m.texto))pend.push({proy:m.proyecto,t:m.created_at,id:'general',general:true,pregunta:(/frenad|saldo/i.test(m.texto)?'La fábrica está frenada y espera tu respuesta':'El director terminó y espera tu respuesta'),libre:_resumen(m.texto)});
  });
  _dec={pend:pend,hechas:hechas.slice(0,8)};renderDec();
 }
