@@ -384,85 +384,26 @@ body{background:#080a0b}
     <!-- ===== TABLERO ===== -->
     <section class="view on" id="view-tablero">
       <div class="phead"><div><h1>Tablero</h1><p>Qué está pasando en la fábrica</p></div><div class="when"><div class="d" id="tdate">—</div><div class="t"><span id="ttime">—</span> · <span class="dot">en vivo</span></div></div></div>
-      <div class="kpis">
-        <div class="kpi"><div class="kl">A la primera</div><div class="kv">7/10</div><div class="kd up">▲ bloques sin rebote</div></div>
-        <div class="kpi"><div class="kl">Calidad</div><div class="kv">83%</div><div class="kd up">▲ +6 vs semana pasada</div></div>
-        <div class="kpi"><div class="kl">Tu demora</div><div class="kv">~2 h</div><div class="kd">prom. en responder</div></div>
-        <div class="kpi"><div class="kl">Costo del mes</div><div class="kv">$240</div><div class="kd">operar la fábrica</div></div>
-        <div class="kpi"><div class="kl">Proyectos</div><div class="kv">3</div><div class="kd">activos ahora</div></div>
-      </div>
-      <div class="zonas">
-        <div class="card">
-          <div class="zhead"><div class="znum">Zona 12</div><div class="zmeta"><div class="zname">Incubación</div><div class="zsub">entra toda idea</div></div><button class="agbtn" onclick="tgAg(this)"><span class="agn">5</span> agentes <span class="chev">▾</span></button></div>
-          <div class="agents"><div class="agent"><span class="ava">M</span><div class="b"><div class="an">Mateo</div><div class="ar">Incubador</div></div></div><div class="agent"><span class="ava">H</span><div class="b"><div class="an">Harold</div><div class="ar">Mercado</div></div></div><div class="agent"><span class="ava">B</span><div class="b"><div class="an">Brian</div><div class="ar">Producto</div></div></div><div class="agent"><span class="ava">M</span><div class="b"><div class="an">Maya</div><div class="ar">UX</div></div></div><div class="agent"><span class="ava">J</span><div class="b"><div class="an">Jun</div><div class="ar">UI</div></div></div></div>
-          <div class="hl first"><span class="d esp"></span><div class="b"><div class="n">Nuvó</div><div class="s">propuesta lista</div></div><span class="ec go">A Lorenzo</span></div>
-          <div class="hl"><span class="d ok"></span><div class="b"><div class="n">TIMBR</div><div class="s">estudiando mercado</div></div><span class="ec">Estudio</span></div>
-          <div class="hl"><span class="d esp"></span><div class="b"><div class="n">Lumen</div><div class="s">te espera tu lectura</div></div><span class="ec esp">Leer</span></div>
-          <div class="more" onclick="nav('incubacion')">Ver las 3 incubaciones →</div>
-        </div>
-        <div class="card">
-          <div class="zhead"><div class="znum">Zona 3</div><div class="zmeta"><div class="zname">Versiones</div><div class="zsub">Claire y Klaus</div></div><button class="agbtn" onclick="tgAg(this)"><span class="agn">2</span> agentes <span class="chev">▾</span></button></div>
-          <div class="agents"><div class="agent"><span class="ava">C</span><div class="b"><div class="an">Claire</div><div class="ar">Versionadora</div></div></div><div class="agent"><span class="ava">K</span><div class="b"><div class="an">Klaus</div><div class="ar">Planificador</div></div></div></div>
-          <div class="hl first"><span class="d esp"></span><div class="b"><div class="n">Panel-cronos · V1</div><div class="s">Claire la cortó</div></div><span class="ec go">Aprobar</span></div>
-          <div class="hl"><span class="d ok"></span><div class="b"><div class="n">Kairo · V1</div><div class="s">Klaus: 8 bloques</div></div><span class="ec">8 bloq.</span></div>
-          <div class="more" onclick="nav('proyectos')">Ver versión y bloques →</div>
-        </div>
-        <div class="card">
-          <div class="zhead"><div class="znum">Zona 6</div><div class="zmeta"><div class="zname">Construcción</div><div class="zsub">coders · verificadoras</div></div><button class="agbtn" onclick="tgAg(this)"><span class="agn">6</span> agentes <span class="chev">▾</span></button></div>
-          <div class="agents"><div class="agent"><span class="ava">M</span><div class="b"><div class="an">Marvin</div><div class="ar">Coder 1</div></div></div><div class="agent"><span class="ava">K</span><div class="b"><div class="an">Kevin</div><div class="ar">Coder 2</div></div></div><div class="agent"><span class="ava">R</span><div class="b"><div class="an">Rajesh</div><div class="ar">Coder 3</div></div></div><div class="agent"><span class="ava">M</span><div class="b"><div class="an">Margaret</div><div class="ar">Verifica a Marvin</div></div></div><div class="agent"><span class="ava">O</span><div class="b"><div class="an">Olga</div><div class="ar">Verifica a Kevin</div></div></div><div class="agent"><span class="ava">A</span><div class="b"><div class="an">Agatha</div><div class="ar">Verifica a Rajesh</div></div></div></div>
-          <div class="subt first">Qué se construye</div>
-          <div class="pj first"><span class="dot ok"></span><div class="b"><div class="n">Priztine</div><div class="s">el pago · 3er intento</div></div><span class="hr ok">6</span></div>
-          <div class="pj"><span class="dot stop"></span><div class="b"><div class="n">Acme-CRM</div><div class="s">trabado</div></div><span class="hr stop">6</span></div>
-          <div class="subt">Avance</div>
-          <div class="av"><span class="l">Priztine</span><span class="bar"><i class="g" style="width:80%"></i></span><span class="v">4/5</span></div>
-          <div class="av"><span class="l">Acme-CRM</span><span class="bar"><i class="r" style="width:40%"></i></span><span class="v">2/5</span></div>
-          <div class="subt">Freno · por qué</div>
-          <div class="fr"><div class="fn">Acme-CRM · <span class="rr">el pago</span></div>rebotó 3 veces: no validaba la tarjeta. Subió a Fable.<div class="pat">4 de 5 rebotes son por validación → mejorar al coder</div></div>
-        </div>
-        <div class="card">
-          <div class="zhead"><div class="znum">Zona 9</div><div class="zmeta"><div class="zname">Cierre</div><div class="zsub">seguridad · salud</div></div><button class="agbtn" onclick="tgAg(this)"><span class="agn">3</span> agentes <span class="chev">▾</span></button></div>
-          <div class="agents"><div class="agent"><span class="ava">I</span><div class="b"><div class="an">Igor</div><div class="ar">Seguridad · OWASP</div></div></div><div class="agent"><span class="ava">T</span><div class="b"><div class="an">Tony</div><div class="ar">Mantenimiento · salud</div></div></div><div class="agent"><span class="ava">P</span><div class="b"><div class="an">Entrega</div><div class="ar">arma el PR final</div></div></div></div>
-          <div class="subt first">Seguridad · Igor</div>
-          <div class="hl first"><span class="d sec"></span><div class="b"><div class="n">Checkout · sensible</div><div class="s">Igor lo revisó</div></div><span class="tag ok">pasó ✓</span></div>
-          <div class="hl"><span class="d eye"></span><div class="b"><div class="n">OWASP de la V1</div><div class="s">corre al cierre</div></div><span class="tag">al cierre</span></div>
-          <div class="subt">Salud · Tony</div>
-          <div class="hl first"><span class="d ok"></span><div class="b"><div class="n">Priztine · app</div><div class="s">andando</div></div><span class="tag ok">✓</span></div>
-          <div class="hl"><span class="d eye"></span><div class="b"><div class="n">MixPilot</div><div class="s">1 error ayer</div></div><span class="tag eye">ojo</span></div>
-        </div>
-      </div>
+      <div class="kpis" id="tb_kpis"></div>
+      <div class="zonas" id="tb_zonas"></div>
       <div class="analytics">
         <div class="card">
-          <div class="ct"><span>Rendimiento de agentes</span> <span class="q">· a la primera · esta semana</span></div>
-          <div class="arow first" onclick="openAg('margaret')"><span class="ava">M</span><div class="ab"><div class="an">Margaret</div><div class="ar">Verificadora</div></div><span class="abar"><i class="g" style="width:96%"></i></span><span class="ap">96%</span><span class="ad up">▲+1</span></div>
-          <div class="arow" onclick="openAg('agatha')"><span class="ava">A</span><div class="ab"><div class="an">Agatha</div><div class="ar">Verificadora</div></div><span class="abar"><i class="g" style="width:94%"></i></span><span class="ap">94%</span><span class="ad flat">–</span></div>
-          <div class="arow" onclick="openAg('rajesh')"><span class="ava">R</span><div class="ab"><div class="an">Rajesh</div><div class="ar">Coder 3</div></div><span class="abar"><i class="g" style="width:91%"></i></span><span class="ap">91%</span><span class="ad up">▲+2</span></div>
-          <div class="arow" onclick="openAg('marvin')"><span class="ava">M</span><div class="ab"><div class="an">Marvin</div><div class="ar">Coder 1</div></div><span class="abar"><i class="g" style="width:88%"></i></span><span class="ap">88%</span><span class="ad up">▲+5</span></div>
-          <div class="arow" onclick="openAg('olga')"><span class="ava">O</span><div class="ab"><div class="an">Olga</div><div class="ar">Verificadora</div></div><span class="abar"><i class="a" style="width:81%"></i></span><span class="ap">81%</span><span class="ad dn">▼-2</span></div>
-          <div class="arow" onclick="openAg('kevin')"><span class="ava">K</span><div class="ab"><div class="an">Kevin</div><div class="ar">Coder 2</div></div><span class="abar"><i class="r" style="width:72%"></i></span><span class="ap">72%</span><span class="ad dn">▼-3</span></div>
-          <div style="font-size:11px;color:var(--mut);margin-top:13px;padding-top:12px;border-top:1px solid var(--line2);line-height:1.5">Mirá a <b style="color:var(--texto)">Kevin</b>: viene bajando por los rebotes del pago. Darle un ejemplo bueno lo sube.</div>
+          <div class="ct"><span>Situaciones</span> <span class="q">· ahora</span></div>
+          <div id="tb_sit"></div>
         </div>
         <div class="card">
-          <div class="ct"><span>Situaciones</span> <span class="q">· ahora</span></div>
-          <div class="donut-row">
-            <div class="donut"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="46" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="13"/><circle cx="60" cy="60" r="46" fill="none" stroke="#35D29A" stroke-width="13" stroke-dasharray="190 99" stroke-dashoffset="0" transform="rotate(-90 60 60)"/><circle cx="60" cy="60" r="46" fill="none" stroke="#E0A64E" stroke-width="13" stroke-dasharray="70 219" stroke-dashoffset="-190" transform="rotate(-90 60 60)"/><circle cx="60" cy="60" r="46" fill="none" stroke="#E8695C" stroke-width="13" stroke-dasharray="22 267" stroke-dashoffset="-260" transform="rotate(-90 60 60)"/></svg><div class="dc"><div class="dn">12</div><div class="dl">en juego</div></div></div>
-            <div class="legend"><div class="leg"><span class="ld" style="background:#35D29A"></span><span class="lt">Normal</span><span class="lv">8</span></div><div class="leg"><span class="ld" style="background:#E0A64E"></span><span class="lt">Ojo</span><span class="lv">3</span></div><div class="leg"><span class="ld" style="background:#E8695C"></span><span class="lt">Te necesita</span><span class="lv">1</span></div></div>
-          </div>
+          <div class="ct"><span>Te esperan</span> <span class="q">· tu OK</span></div>
+          <div id="tb_te"></div>
         </div>
       </div>
       <div class="extras">
         <div class="card">
-          <div class="ct"><span>Te esperan</span> <span class="q">· tu OK</span></div>
-          <div class="te"><span class="d"></span><div class="b"><div class="n">Entrada de Priztine</div><div class="s">lista y verificada</div></div><div class="btn">Aprobar</div></div>
-          <div class="te"><span class="d"></span><div class="b"><div class="n">Priztine terminado</div><div class="s">pasó seguridad</div></div><div class="btn">OK final</div></div>
-          <div class="te"><span class="d"></span><div class="b"><div class="n">Propuesta de Nuvó</div><div class="s">lista para Lorenzo</div></div><div class="btn">Enviar</div></div>
+          <div class="ct"><span>Rendimiento de agentes</span> <span class="q">· a la primera</span></div>
+          <div id="tb_rend"></div>
         </div>
         <div class="card">
           <div class="ct"><span>Consumo</span> <span class="q">· esta semana</span></div>
-          <div class="money">$55</div>
-          <div class="subn">11,2 M tokens · 38% del límite semanal</div>
-          <div class="crow"><span class="l">Priztine</span><span class="bar"><i class="g" style="width:48%"></i></span><span class="v">$21</span></div>
-          <div class="crow"><span class="l">Acme-CRM</span><span class="bar"><i class="r" style="width:50%"></i></span><span class="v">$22</span></div>
-          <div class="models"><span>Opus <b>9,1M tok</b></span><span>Fable <b>2,1M</b> · 41% de su cupo</span></div>
+          <div id="tb_cons"></div>
         </div>
       </div>
     </section>
@@ -910,7 +851,7 @@ async function fetchIncs(){
  var r=await _supa.from('incubaciones').select('*').order('created_at',{ascending:false});
  var el=document.getElementById('inclist');
  if(r.error){if(el)el.innerHTML='<div class="inc-empty">No se pudo leer la base:<br><b>'+_esc(r.error.message)+'</b><br><br><button class="mbtn-gh" onclick="cambiarCreds()">Cambiar claves</button></div>';return;}
- _incs=r.data||[];renderIncs();
+ _incs=r.data||[];renderIncs();try{renderTablero();}catch(e){}
 }
 /* --- CABLE: avisos en vivo de la fábrica (tabla eventos) --- */
 var _evTimer=null,_evs=[];
@@ -963,6 +904,7 @@ async function fetchEvs(){
  if(r.error){el.innerHTML='<div class="inc-empty">El cable todavía no está conectado (falta la tabla <b>eventos</b>). Corré <b>cable/eventos.sql</b> en Supabase y recargá.</div>';return;}
  var evs=r.data||[];_evs=evs;renderIncs();try{renderShaiFeed();}catch(e){}
  try{_shaiAutoReporte();}catch(e){}
+ try{renderTablero();}catch(e){}
  if(!evs.length){el.innerHTML='<div class="inc-empty">Sin avisos todavía. Cuando un agente trabaje, lo ves acá.</div>';return;}
  el.innerHTML=evs.map(function(e){return '<div class="card rowcard" style="cursor:default"><div class="rc-top"><div><div class="rc-nm">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="rc-sub">'+_evAgo(e.created_at)+'</div></div>'+_evBadge(e.estado)+'</div>'+(e.mensaje?'<div class="rc-say">'+_esc(e.mensaje)+'</div>':'')+'</div>';}).join('');
 }
@@ -977,6 +919,32 @@ async function initInc(){
  fetchIncs();fetchEvs();
  if(_evTimer)clearInterval(_evTimer);
  _evTimer=setInterval(function(){fetchIncs();fetchEvs();if(_chatProy&&document.getElementById('incmodal').classList.contains('open'))cargarChat(_chatProy);},20000);
+}
+
+/* --- TABLERO REAL: todo sale de eventos + incubaciones; sin maqueta --- */
+var ZONAS=[{z:'12',n:'Incubación',s:'entra toda idea',ag:[['Mateo','Incubador'],['Harold','Mercado'],['Brian','Producto'],['Maya','UX'],['Jun','UI']],re:/^(mateo|harold|brian|marca|maya|jun|director|incubacion|incubador|claire)/i},
+ {z:'3',n:'Planificación',s:'Klaus corta en órdenes',ag:[['Claire','Versionadora'],['Klaus','Planificador']],re:/^(klaus|planificador|versionador)/i},
+ {z:'6',n:'Construcción',s:'coders · verificadoras',ag:[['Marvin','Coder'],['Kevin','Coder'],['Rajesh','Coder'],['Margaret','Verifica'],['Olga','Verifica'],['Agatha','Verifica']],re:/^(marvin|kevin|rajesh|margaret|olga|agatha|coder|verif|dis-)/i},
+ {z:'9',n:'Cierre',s:'seguridad · PR · salud',ag:[['Igor','Seguridad'],['Tony','Salud'],['Entrega','PR']],re:/^(igor|seguridad|tony|pr|entrega)/i}];
+function _tbEst(e){return e.estado==='esperando_ok'?['esp','Te espera']:e.estado==='error'?['stop','Problema']:(e.estado==='terminado'||e.estado==='aprobado')?['ok','Hecho']:['ok','Trabajando'];}
+function renderTablero(){
+ var k=document.getElementById('tb_kpis');if(!k)return;
+ var evs=_evs||[],incs=_incs||[];
+ var esp=evs.filter(function(e){return e.estado==='esperando_ok';}),err=evs.filter(function(e){return e.estado==='error';});
+ var proys={};evs.forEach(function(e){proys[e.proyecto]=1;});
+ var ult=evs[0];
+ k.innerHTML=[['Proyectos',Object.keys(proys).length||incs.length||0,'con actividad'],['Te esperan',esp.length,'avisos sin tu OK'],['Frenos',err.length,'problemas abiertos'],['Último aviso',ult?_evAgo(ult.created_at):'—',ult?_esc(ult.proyecto+' · '+ult.etapa):'sin actividad'],['Costo','—','lo mide tu plan Max']].map(function(x){return '<div class="kpi"><div class="kl">'+x[0]+'</div><div class="kv">'+x[1]+'</div><div class="kd">'+x[2]+'</div></div>';}).join('');
+ document.getElementById('tb_zonas').innerHTML=ZONAS.map(function(z){
+  var mios=evs.filter(function(e){return z.re.test(e.etapa||'');}).slice(0,4);
+  if(z.z==='12'&&!mios.length)mios=incs.slice(0,3).map(function(i){return {proyecto:i.nombre,etapa:'Etapa '+(i.etapa||0),estado:'trabajando',mensaje:i.nota||'',created_at:i.updated_at||i.created_at||new Date().toISOString()};});
+  var hl=mios.length?mios.map(function(e,i){var st=_tbEst(e);return '<div class="hl'+(i===0?' first':'')+'" style="cursor:pointer" onclick="shaiAbrir(\''+_esc(e.proyecto)+'\')"><span class="d '+st[0]+'"></span><div class="b"><div class="n">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="s">'+_esc(_shaiCorto(e.mensaje||'',70))+'</div></div><span class="ec'+(st[0]==='esp'?' esp':st[0]==='ok'?' go':'')+'">'+st[1]+'</span></div>';}).join(''):'<div class="hl first"><span class="d"></span><div class="b"><div class="n" style="color:var(--mut)">Sin actividad</div><div class="s">cuando un agente trabaje, aparece acá</div></div></div>';
+  return '<div class="card"><div class="zhead"><div class="znum">Zona '+z.z+'</div><div class="zmeta"><div class="zname">'+z.n+'</div><div class="zsub">'+z.s+'</div></div><button class="agbtn" onclick="tgAg(this)"><span class="agn">'+z.ag.length+'</span> agentes <span class="chev">▾</span></button></div><div class="agents">'+z.ag.map(function(a){return '<div class="agent"><span class="ava">'+a[0][0]+'</span><div class="b"><div class="an">'+a[0]+'</div><div class="ar">'+a[1]+'</div></div></div>';}).join('')+'</div>'+hl+'</div>';
+ }).join('');
+ var tot=evs.length,ok=evs.filter(function(e){return e.estado==='trabajando'||e.estado==='terminado'||e.estado==='aprobado';}).length;
+ document.getElementById('tb_sit').innerHTML=tot?'<div class="legend"><div class="leg"><span class="ld" style="background:#35D29A"></span><span class="lt">Trabajando / hecho</span><span class="lv">'+ok+'</span></div><div class="leg"><span class="ld" style="background:#E0A64E"></span><span class="lt">Te esperan</span><span class="lv">'+esp.length+'</span></div><div class="leg"><span class="ld" style="background:#E8695C"></span><span class="lt">Problemas</span><span class="lv">'+err.length+'</span></div></div><div style="font-size:11px;color:var(--mut);margin-top:8px">últimos '+tot+' avisos</div>':'<div style="color:var(--mut);font-size:12px">Sin datos todavía.</div>';
+ document.getElementById('tb_te').innerHTML=esp.length?esp.slice(0,4).map(function(e){return '<div class="te"><span class="d"></span><div class="b"><div class="n">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="s">'+_esc(_shaiCorto(e.mensaje||'',80))+'</div></div><div class="btn" onclick="shaiAprobar(\''+_esc(e.proyecto)+'\')">Aprobar</div></div>';}).join(''):'<div style="color:var(--mut);font-size:12px">Nada pendiente. La fábrica sigue sola.</div>';
+ document.getElementById('tb_rend').innerHTML='<div style="color:var(--mut);font-size:12px">Se calcula con los veredictos de la fábrica (a la primera vs rebotes). Todavía no hay suficientes para mostrar un porcentaje honesto.</div>';
+ document.getElementById('tb_cons').innerHTML='<div class="money">—</div><div class="subn">El gasto lo mide tu plan Max (claude.ai → Uso). El panel no lo ve todavía.</div>';
 }
 /* --- SHAI: reporte real, feed real, aprobar y voz --- */
 var _shaiAutoHecho=false;
