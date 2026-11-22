@@ -517,6 +517,11 @@ body{background:#080a0b}
       <div id="i_chat" style="max-height:220px;overflow:auto;font-size:12.5px;line-height:1.55;display:flex;flex-direction:column;gap:8px;margin:8px 0"></div>
       <textarea id="i_resp" placeholder="Respondele al director… (ej: A en todo, firmo las tres etapas)" style="width:100%;min-height:64px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--texto);font-size:12.5px;padding:10px;font-family:inherit"></textarea>
       <button onclick="dirAprobar()" style="width:100%;margin-top:10px;padding:15px;border:0;border-radius:12px;background:linear-gradient(135deg,#35D29A,#2BAF80);color:#06130d;font-size:14.5px;font-weight:700;letter-spacing:.03em;cursor:pointer;font-family:inherit">✅ APROBAR Y AVANZAR</button>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="dirConstruir()" class="mbtn-gh" style="flex:1;padding:12px;font-size:12.5px">🏗️ Construir · arrancar la fábrica</button>
+        <button onclick="dirSeguir()" class="mbtn-gh" style="flex:1;padding:12px;font-size:12.5px">▶ Seguir de corrido</button>
+      </div>
+      <div style="font-size:10.5px;color:var(--mut);margin-top:6px">Construir manda la orden al Planificador con el diseño aprobado. Seguir le dice que continúe con el próximo bloque sin esperarte.</div>
       <div class="mbtns2" style="margin-top:8px"><button class="mbtn-pri" onclick="dirEnviar()" style="width:100%">Enviar mensaje al director</button></div>
     </div>
     <div class="mbtns2"><button class="mbtn-gh" onclick="incPrev()">← Atrás</button><button class="mbtn-pri" id="i_next" onclick="incNext()">Avanzar etapa →</button></div>
@@ -1020,6 +1025,14 @@ async function dirEnviar(){
  var r=await _supa.from('mensajes').insert({proyecto:_chatProy,rol:'facu',texto:txt,estado:'pendiente'});
  if(r.error){alert('No se pudo enviar: '+r.error.message);return;}
  t.value='';cargarChat(_chatProy);
+}
+function _dirMandar(texto){if(!_supa||!_chatProy)return;_supa.from('mensajes').insert({proyecto:_chatProy,rol:'facu',texto:texto,estado:'pendiente'}).then(function(r){if(r.error){alert('No se pudo enviar: '+r.error.message);return;}cargarChat(_chatProy);});}
+function dirConstruir(){
+ if(!confirm('¿Arrancar la construcción de '+_chatProy+'? El Planificador lee incubacion/00-LEEME.md (diseño aprobado, biblia, recorrido), propone los bloques y arranca el primero.'))return;
+ _dirMandar('@planificador ARRANCA LA CONSTRUCCIÓN de '+_chatProy+'. Leé primero incubacion/00-LEEME.md (diseño aprobado, biblia de pantallas, recorrido y reglas firmadas); las pantallas HTML del panel y mis ajustes son el diseño final, no se rediseña. Verificá que el stack y los comandos (instalar, probar, armar) estén definidos en CLAUDE.md/VARIABLES.md y permitidos por el candado ANTES de lanzar coders; si falta algo, resolvelo o avisame al instante. Proponeme los bloques EN CORTO y arrancá el bloque 1 apenas lo apruebe. Reportá cada bloque al panel en lenguaje simple: qué se hizo, link para probar, qué falta. Nunca push a main; sin claves; verificador y seguridad en bloques sensibles.');
+}
+function dirSeguir(){
+ _dirMandar('@planificador APRUEBO. Seguí DE CORRIDO con el bloque siguiente y los que vengan, sin esperar mi OK entre bloques, hasta terminar la versión o hasta un freno por 3 intentos. Reportá cada bloque al panel en simple.');
 }
 function dirAprobar(){if(!confirm('¿Aprobar esta etapa y que el proyecto avance?'))return;document.getElementById('i_resp').value='APRUEBO. Antes de firmar: leé mis ajustes del panel con cable/leer-ajustes.ps1 y aplicalos si hay. Después firmá con fecha, subí todo con cable/subir.ps1 y avanzá a lo que sigue.';dirEnviar();}
 /* --- SUBPANTALLA DE ETAPA: entrega + pantallas + editor simple --- */
