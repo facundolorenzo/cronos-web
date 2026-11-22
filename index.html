@@ -483,7 +483,7 @@ body{background:#080a0b}
     <div class="msec"><div class="mt">La idea</div><div id="i_idea" style="font-size:12.5px;color:var(--mut);line-height:1.55;white-space:pre-wrap"></div></div>
     <div class="msec"><div class="mt">Dónde está</div><div id="i_nota" style="font-size:12.5px;color:var(--mut);line-height:1.55"></div></div>
     <div class="msec"><div class="mt">El director · hablá desde acá</div>
-      <div id="i_chat" style="max-height:220px;overflow:auto;font-size:12.5px;line-height:1.55;display:flex;flex-direction:column;gap:8px;margin:8px 0"></div>
+      <div id="i_chat" style="max-height:460px;overflow:auto;font-size:12.5px;line-height:1.55;display:flex;flex-direction:column;gap:8px;margin:8px 0"></div>
       <textarea id="i_resp" placeholder="Respondele al director… (ej: A en todo, firmo las tres etapas)" style="width:100%;min-height:64px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--texto);font-size:12.5px;padding:10px;font-family:inherit"></textarea>
       <button onclick="dirAprobar()" style="width:100%;margin-top:10px;padding:15px;border:0;border-radius:12px;background:linear-gradient(135deg,#35D29A,#2BAF80);color:#06130d;font-size:14.5px;font-weight:700;letter-spacing:.03em;cursor:pointer;font-family:inherit">✅ APROBAR Y AVANZAR</button>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -985,14 +985,14 @@ window._shaiEnviar=async function(q){
 var _chatProy='';
 async function cargarChat(proy){
  _chatProy=proy;var el=document.getElementById('i_chat');if(!el||!_supa)return;
- var r=await _supa.from('mensajes').select('*').eq('proyecto',proy).order('created_at',{ascending:true}).limit(30);
+ var r=await _supa.from('mensajes').select('*').eq('proyecto',proy).order('created_at',{ascending:false}).limit(30);if(r.data)r.data.reverse();
  if(r.error){el.innerHTML='<div style="color:var(--mut)">El chat necesita la tabla <b>mensajes</b> (SQL del lanzador).</div>';return;}
  var ms=r.data||[];
  if(!ms.length){el.innerHTML='<div style="color:var(--mut)">Sin mensajes todavía. Cuando el director te escriba, aparece acá.</div>';return;}
  el.innerHTML=ms.map(function(m){
   var mio=m.rol==='facu';
   var pend=mio&&m.estado==='pendiente'?' · <i>esperando al director…</i>':'';
-  return '<div style="align-self:'+(mio?'flex-end':'flex-start')+';max-width:92%;padding:9px 12px;border-radius:12px;background:'+(mio?'rgba(53,210,154,.12)':'rgba(255,255,255,.05)')+';white-space:pre-wrap">'+(mio?'':'<b style="color:var(--esmb);font-size:11px">DIRECTOR</b><br>')+_esc(m.texto)+pend+'</div>';
+  return '<div style="align-self:'+(mio?'flex-end':'flex-start')+';max-width:92%;padding:9px 12px;border-radius:12px;background:'+(mio?'rgba(53,210,154,.12)':'rgba(255,255,255,.05)')+';white-space:pre-wrap">'+(mio?'':'<b style="color:var(--esmb);font-size:11px">DIRECTOR</b><br>')+(mio?_esc(m.texto):_mdLite(m.texto))+pend+'</div>';
  }).join('');
  el.scrollTop=el.scrollHeight;
 }
@@ -1834,7 +1834,8 @@ function openIncDB(id){var x=_incs.find(function(i){return String(i.id)===String
  var badge=document.getElementById('i_badge');badge.className='ec '+(et>=4?'go':(et===2?'esp':''));badge.textContent=et>=4?ETAPAS[4]:(et===2?'Tu lectura':ETAPAS[et]);
  document.getElementById('i_steps').innerHTML=_stepsHTML(et);
  _set('i_idea',x.idea||'(sin descripción todavía)');
- _set('i_nota',(x.nota||'')+' · etapa actual: '+ETAPAS[et]);
+ var _ue=(_evs||[]).filter(function(e){return String(e.proyecto).toUpperCase()===String(x.nombre).toUpperCase();})[0];
+ _set('i_nota',_ue?('Fábrica: '+(_ue.mensaje||'')+' · '+new Date(_ue.created_at).toLocaleString('es-AR',{weekday:'short',hour:'2-digit',minute:'2-digit'})):((x.nota||'')+' · etapa actual: '+ETAPAS[et]));
  document.getElementById('i_next').style.display=et>=4?'none':'inline-flex';
  document.getElementById('incmodal').classList.add('open');
  cargarChat(x.nombre);
