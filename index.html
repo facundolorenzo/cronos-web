@@ -366,11 +366,11 @@ body{background:#080a0b}
 @keyframes vivoPulso{50%{opacity:.35}}
 .vivo-arch{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#9AA19E;flex:1 1 200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vivo-cuenta{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--esmb)}
-.vivo-body{display:flex;height:560px}
-.vivo-files{flex:0 0 230px;border-right:1px solid var(--line);padding:12px 0;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:12px}
+.vivo-body{display:flex;height:760px}
+.vivo-files{flex:0 0 200px;border-right:1px solid var(--line);padding:12px 0;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:12px}
 .vivo-files div{padding:6px 16px;color:#7d8582;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vivo-files div.on{color:#EAEEEC;background:rgba(53,210,154,.08);border-left:2px solid var(--esm);padding-left:14px}
-.vivo-code{flex:1;overflow-y:auto;padding:14px 0;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.65;scroll-behavior:smooth}
+.vivo-code{flex:1;overflow-y:auto;padding:14px 0;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.7;scroll-behavior:smooth}
 .vivo-ln{display:flex;white-space:pre-wrap;word-break:break-all;padding-right:16px}
 .vivo-ln .n{flex:0 0 46px;text-align:right;padding-right:14px;color:#3d4442;user-select:none}
 .vivo-ln .s{flex:0 0 16px;color:#3d4442}
@@ -385,13 +385,14 @@ body{background:#080a0b}
 .sala-kpi .l{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:#7d8582}
 .sala-kpi .v{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500;margin-top:4px;color:#EAEEEC}
 .sala-kpi .v.ok{color:var(--esm)}.sala-kpi .v.mal{color:var(--rojo)}.sala-kpi .v.esp{color:var(--amber)}
-.sala-grid{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);grid-template-rows:auto auto;gap:14px}
-.sala-code{grid-row:1/3}
+.sala-grid{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(290px,1fr);gap:14px;align-items:start}
+.sala-der{display:flex;flex-direction:column;gap:14px;min-width:0}
+.shai-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.shai-chips span{padding:5px 10px;border-radius:14px;border:1px solid var(--line);font-size:12px;color:#c9d0cd;cursor:pointer}.shai-chips span:hover{border-color:var(--esm)}
 .sala-card{border:1px solid var(--line);border-radius:16px;background:#07090a;padding:12px 14px;display:flex;flex-direction:column;min-width:0}
 .sala-h{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.16em;color:#7d8582;display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}
 .sala-hv{color:var(--esmb);letter-spacing:.04em}
-.sala-red canvas{width:100%;height:340px;display:block}
-.sala-lpm canvas{width:100%;height:150px;display:block}
+.sala-red canvas{width:100%;height:230px;display:block}
+.sala-lpm canvas{width:100%;height:110px;display:block}
 .sala-cinta{font-family:'JetBrains Mono',monospace;font-size:12px;max-height:260px;overflow-y:auto}
 .sala-cinta div{display:grid;grid-template-columns:52px 190px 64px 1fr;gap:10px;padding:5px 2px;border-top:1px solid rgba(255,255,255,.04);white-space:nowrap;overflow:hidden}
 .sala-cinta span{overflow:hidden;text-overflow:ellipsis}
@@ -477,8 +478,16 @@ body{background:#080a0b}
           <div class="vivo-top"><span class="vivo-luz" id="vivo_luz"></span><span id="vivo_quien" style="font-weight:600">—</span><span id="vivo_arch" class="vivo-arch">—</span><span id="vivo_cuenta" class="vivo-cuenta"></span></div>
           <div class="vivo-body"><div class="vivo-files" id="vivo_files"></div><div class="vivo-code" id="vivo_code"></div></div>
         </div>
+        <div class="sala-der">
+        <div class="sala-card shai-caja">
+          <div class="sala-h">SHAI <span class="sala-hv" id="shai_v_est">preguntame</span></div>
+          <div style="display:flex;gap:12px;align-items:center"><canvas id="shai_v_orb" style="width:64px;height:64px;flex:0 0 64px"></canvas><div id="shai_v_resp" style="font-size:13.5px;line-height:1.45;color:#EAEEEC">Preguntame cómo viene la fábrica. Te contesto en voz alta.</div></div>
+          <div class="shai-chips"><span onclick="_shaiV('¿Cómo viene?')">¿Cómo viene?</span><span onclick="_shaiV('¿Qué está haciendo?')">¿Qué hace ahora?</span><span onclick="_shaiV('¿Qué me falta decidir?')">¿Qué decido?</span><span onclick="_shaiV('¿Hay algo frenado?')">¿Frenos?</span></div>
+          <div style="display:flex;gap:8px;margin-top:8px"><input id="shai_v_in" placeholder="Escribí o tocá el micrófono" onkeydown="if(event.key==='Enter'){_shaiV(this.value);this.value='';}" style="flex:1;min-width:0;background:#0c0f10;border:1px solid var(--line);border-radius:10px;color:#EAEEEC;padding:9px 12px;font-family:inherit;font-size:13.5px"><button id="shai_v_mic" onclick="_shaiMic()" title="Hablar" style="width:40px;height:40px;border-radius:20px;border:0;background:var(--esm);color:#06231a;cursor:pointer;font-size:16px">🎙</button><button onclick="_shaiCallar()" title="Callar" style="width:40px;height:40px;border-radius:20px;border:1px solid var(--line);background:transparent;color:#9AA19E;cursor:pointer">■</button></div>
+        </div>
         <div class="sala-card sala-red"><div class="sala-h">RED DE AGENTES <span id="sala_activos" class="sala-hv"></span></div><canvas id="sala_red"></canvas></div>
         <div class="sala-card sala-lpm"><div class="sala-h">LÍNEAS POR MINUTO · 30 MIN <span id="sala_lpm_v" class="sala-hv"></span></div><canvas id="sala_lpm"></canvas></div>
+        </div>
       </div>
       <div class="sala-card" style="margin-top:14px"><div class="sala-h">CINTA DE LA FÁBRICA <span class="sala-hv">últimos avisos</span></div><div id="sala_cinta" class="sala-cinta"></div></div>
     </section>
@@ -1153,6 +1162,7 @@ function _salaDibujar(){
    x.font='10px "JetBrains Mono",monospace';x.fillStyle='#55605c';x.fillText(n.r,p[0],p[1]+39);
    _sala.act[n.k]=Math.max(0,a-.0015);});
   var sa=document.getElementById('sala_activos');if(sa)sa.textContent=act?act+' trabajando':'en espera';}
+ try{_shaiOrb();}catch(x){}
  var L=_salaCanvas('sala_lpm');if(L&&L.w){var x2=L.x,m=Math.floor(Date.now()/60000),mx=1,vals=[];for(var i=29;i>=0;i--){var f=_sala.lpm.find(function(z){return z.m===m-i;});vals.push(f?f.n:0);}vals.forEach(function(v){mx=Math.max(mx,v);});
   x2.clearRect(0,0,L.w,L.h);var bw=L.w/30;vals.forEach(function(v,i){var hh=(v/mx)*(L.h-18);x2.fillStyle=i===29?'#5EEBAE':'rgba(53,210,154,.45)';x2.fillRect(i*bw+1,L.h-hh-14,bw-2,Math.max(hh,v?2:0));});
   x2.fillStyle='#55605c';x2.font='10px "JetBrains Mono",monospace';x2.textAlign='left';x2.fillText('-30 min',0,L.h-2);x2.textAlign='right';x2.fillText('ahora',L.w,L.h-2);
@@ -1177,6 +1187,33 @@ function _salaDemo(){var t0=Date.now(),nm=['Klaus · C-049','Kevin · coder-fron
  _sala.evs=[];_sala.vistosEv={};_sala.kpi={bloque:'Bloque 4 · desafío'};var lista=[];for(var i=0;i<14;i++){var j=i%6;lista.push({id:'d'+i,etapa:nm[j],estado:i===7?'esperando_ok':es[j],mensaje:ms[j],created_at:new Date(t0-(14-i)*90000).toISOString()});}
  _salaIngerir(lista.reverse(),true);for(var m=0;m<30;m++)_sala.lpm.push({m:Math.floor(t0/60000)-30+m,n:Math.round(Math.max(0,8+14*Math.sin(m/4)+Math.random()*10))});
  var k=0;clearInterval(_sala.demoT);_sala.demoT=setInterval(function(){if(!_vivo.demo){clearInterval(_sala.demoT);return;}var j=k++%6;_salaIngerir([{id:'dx'+k,etapa:nm[j],estado:es[j],mensaje:ms[j],created_at:new Date().toISOString()}],false);_salaLineas(Math.round(Math.random()*12));if(!_vivo.cola.length&&!_vivo.corriendo)_VIVO_DEMO.forEach(function(c){_vivoEncolar(JSON.parse(JSON.stringify(c)));});},2600);}
+
+/* ===== SHAI en la sala (sin IA: responde con los datos de la fábrica) ===== */
+var _shaiHabla=0;
+function _shaiDecir(t){var R=document.getElementById('shai_v_resp');if(R)R.textContent=t;var E=document.getElementById('shai_v_est');
+ try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t.replace(/·/g,',').replace(/C-(\d+)/g,'orden $1'));u.lang='es-US';var vs=speechSynthesis.getVoices().filter(function(v){return /^es/i.test(v.lang);});var v=vs.find(function(v){return /US|MX|419|AR/i.test(v.lang);})||vs[0];if(v)u.voice=v;u.rate=1.05;
+  u.onstart=function(){_shaiHabla=1;if(E)E.textContent='hablando…';};u.onend=function(){_shaiHabla=0;if(E)E.textContent='preguntame';};speechSynthesis.speak(u);}catch(x){}}
+function _shaiCallar(){try{speechSynthesis.cancel();}catch(x){}_shaiHabla=0;}
+function _shaiPend(){return (_dec&&_dec.pend||[]).filter(function(d){return !d.general;});}
+function _shaiV(q){q=String(q||'').trim();if(!q)return;var t=q.toLowerCase(),k=_sala.kpi||{},a=_vivo.actual,P=_shaiPend(),r;
+ var ult=_sala.evs[0];var hace=ult?_evAgo(ult.created_at):'';
+ var m=t.match(/elij[oa]\s+(?:la\s+)?([a-d])\b/);
+ if(m&&P.length){var d=P[0],o=(d.opciones||[]).find(function(x){return String(x.k).toLowerCase()===m[1];});if(o){_decSel[d.proy+'/'+d.id]=o.k;try{renderDec();}catch(x){}r='Anotado: '+o.k+', '+(o.txt||'')+'. Cuando termines, tocá Mandar a la fábrica en Decisiones.';}else r='Esa opción no existe en la decisión que te leí.';}
+ else if(/le[eé]|decid|decisi|falta|espera/.test(t)){if(!P.length)r='No te espera ninguna decisión. La fábrica sigue sola.';else{var d=P[0];r='Te '+(P.length>1?'esperan '+P.length+' decisiones. La primera: ':'espera una decisión: ')+d.pregunta+'. '+(d.opciones||[]).map(function(o){return 'Opción '+o.k+': '+(o.txt||'');}).join('. ')+(d.recomendada?'. Te recomiendo la '+d.recomendada:'')+'. Decime elijo A o elijo B.';}}
+ else if(/fren|error|rojo|problema|rebot/.test(t)){r=k.rojo?('Hay '+k.rojo+' orden'+(k.rojo>1?'es':'')+' en rojo hoy. '+((_sala.evs.find(function(e){return e.estado==='error';})||{}).mensaje||'')):'No hay nada frenado. Todo lo que se revisó hoy está en verde o en curso.';}
+ else if(/hace|haciendo|ahora|quien|qui[eé]n|escrib/.test(t)){r=a?(String(a.quien||'Un agente').split('·')[0].trim()+' está escribiendo '+String(a.archivo||'').split('/').pop()+(a.orden?', de la orden '+a.orden:'')+'.'):(ult?('Lo último: '+ult.etapa+', '+ult.mensaje+', '+hace+'.'):'Ahora no está escribiendo código.');}
+ else if(/hoy|hizo|hecho|avance/.test(t)){r='Hoy: '+(k.verde||0)+' órdenes en verde y '+(_vivo.n||0)+' líneas de código escritas.'+(k.bloque?' Va por el '+k.bloque+'.':'');}
+ else {r=(k.bloque?'Va por el '+k.bloque+'. ':'')+(k.verde||0)+(k.verde===1?' orden':' órdenes')+' en verde'+(k.rojo?', '+k.rojo+' en rojo':', ninguna frenada')+'. '+(a&&_vivo.corriendo?String(a.quien||'').split('·')[0].trim()+' está escribiendo ahora. ':'')+(P.length?'Te '+(P.length>1?'esperan '+P.length+' decisiones.':'espera una decisión.')+' ¿Te la leo?':'No te espera nada.')+(hace?' Último aviso: '+hace+'.':'');}
+ _shaiDecir(r);}
+var _shaiRec=null;
+function _shaiMic(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){_shaiDecir('Este navegador no me deja escuchar. Escribime la pregunta.');return;}
+ _shaiCallar();if(_shaiRec){try{_shaiRec.stop();}catch(x){}_shaiRec=null;return;}
+ var r=new SR();r.lang='es-AR';r.interimResults=false;r.maxAlternatives=1;var E=document.getElementById('shai_v_est');if(E)E.textContent='escuchando…';_shaiHabla=2;
+ r.onresult=function(ev){var q=ev.results[0][0].transcript;var I=document.getElementById('shai_v_in');if(I)I.value='';_shaiV(q);};
+ r.onend=function(){_shaiRec=null;if(_shaiHabla===2){_shaiHabla=0;if(E)E.textContent='preguntame';}};r.onerror=r.onend;_shaiRec=r;r.start();}
+function _shaiOrb(){var C=_salaCanvas('shai_v_orb');if(!C||!C.w)return;var x=C.x,w=C.w,h=C.h,cx=w/2,cy=h/2,t=Date.now()/1000,amp=_shaiHabla?1:0;x.clearRect(0,0,w,h);
+ for(var i=0;i<70;i++){var a=i/70*Math.PI*2+t*.4,rr=22+Math.sin(i*2.1+t*(3+amp*6))*(2+amp*5);x.fillStyle='rgba(94,235,174,'+(.35+.4*Math.sin(i+t*4))+')';x.fillRect(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,1.6,1.6);}
+ var g=x.createRadialGradient(cx,cy,0,cx,cy,16+amp*4);g.addColorStop(0,'rgba(234,255,245,.95)');g.addColorStop(.4,'rgba(94,235,174,.6)');g.addColorStop(1,'rgba(94,235,174,0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,18+amp*4,0,7);x.fill();}
 function _decList(){return _decDemo?_DEC_DEMO:_dec.pend;}
 function _decPick(i,j){var d=_decList()[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
 function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();delete _decNota[d.proy+'/'+d.id];renderDec();}}
