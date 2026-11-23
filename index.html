@@ -912,7 +912,7 @@ async function fetchDec(){
  var r=await _supa.from('mensajes').select('proyecto,rol,texto,created_at').order('created_at',{ascending:false}).limit(80);
  if(r.error)return;
  var ms=r.data||[],resp={},hechas=[],pend=[],visto={};
- ms.forEach(function(m){if(m.rol!=='facu')return;var t=String(m.texto||''),re=/DECISI[OÓ]N\s+([^\s:]+):\s*([^\n]*)/gi,d,algo=false;while((d=re.exec(t))){algo=true;resp[m.proyecto+'/'+d[1]]=1;hechas.push({proy:m.proyecto,txt:d[1]+': '+String(d[2]).split(/(?<=\.)\s/)[0].slice(0,140),t:m.created_at});}
+ ms.forEach(function(m){if(m.rol!=='facu')return;var t=String(m.texto||''),re=/DECISI[OÓ]N\s+([^\s:]+):\s*([^\n]*)/gi,d,algo=false;var grp=[];while((d=re.exec(t))){algo=true;resp[m.proyecto+'/'+d[1]]=1;grp.push({id:d[1],r:String(d[2])});}if(grp.length)hechas.push({proy:m.proyecto,grupo:grp,t:m.created_at});
   var cab=t.replace(/^@\w+\s*/,'');if(algo||!/^APRUEBO/i.test(cab))return;
   var items=cab.split('\n').map(function(l){var x=/^\s*\d+[.)]\s*(.+)$/.exec(l);return x?x[1]:null;}).filter(Boolean);
   if(items.length)items.forEach(function(it){hechas.push({proy:m.proyecto,txt:it.replace(/\*\*/g,'').slice(0,150),t:m.created_at});});
@@ -924,7 +924,7 @@ async function fetchDec(){
   if(arr){arr.forEach(function(d){if(d&&d.id&&!resp[m.proyecto+'/'+d.id])pend.push(Object.assign({proy:m.proyecto,t:m.created_at},d));});}
   else if(!luego.length&&/decid|necesito|tu OK|aprob|elij|eleg[ií]|esperar|c[oó]mo seguir|frenad/i.test(m.texto))pend.push({proy:m.proyecto,t:m.created_at,id:'general',general:true,pregunta:(/frenad|saldo/i.test(m.texto)?'La fábrica está frenada y espera tu respuesta':'El director terminó y espera tu respuesta'),libre:_resumen(m.texto)});
  });
- _dec={pend:pend,hechas:hechas.slice(0,8)};renderDec();
+ _dec={pend:pend,hechas:hechas.slice(0,5)};renderDec();
 }
 function _muestraHTML(o){var mu=o.muestra||{};
  if(mu.tipo==='color'){var f=mu.fondo||'#F4F1EA',c=mu.color||'#000',cr=_contraste(c,f),ok=cr&&cr>=4.5;
@@ -967,8 +967,21 @@ function renderDec(){
  var S=document.getElementById('dec_send');
  if(S)S.innerHTML=elegibles?'<button class="mbtn-pri" '+(sends?'':'disabled ')+'onclick="_decMandar()" style="width:100%;padding:17px;font-size:15px;font-weight:700;border-radius:14px;opacity:'+(sends?1:.45)+'">Mandar a la fábrica ('+sends+' de '+elegibles+' elegidas)</button>':'';
  var H=document.getElementById('dec_hechas');
- if(H)H.innerHTML=_dec.hechas.length?'<div style="font-size:14px;font-weight:600;color:var(--mut);margin:10px 0 8px">Ya decidiste</div>'+_dec.hechas.map(function(x){return '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px"><span style="color:var(--esmb);font-weight:700">✓</span><span style="flex:1 1 240px;font-size:13.5px">'+_esc(x.proy)+' · '+_esc(x.txt)+'</span><span style="font-size:12px;color:var(--mut)">'+_evAgo(x.t)+'</span></div>';}).join(''):'';
+ if(H)H.innerHTML=(_decEnviado?'<div role="status" style="padding:16px 20px;border-radius:14px;background:rgba(53,210,154,.1);border:1px solid rgba(53,210,154,.4);color:var(--esmb);font-size:16px;font-weight:700;margin-bottom:14px">✓ Enviado: '+_decEnviado.n+' decisi'+(_decEnviado.n>1?'ones':'ón')+' a la fábrica. Ya las está aplicando.</div>':'')
+  +(_dec.hechas.length?'<div style="font-size:14px;font-weight:600;color:var(--mut);margin:10px 0 8px">Ya decidiste</div>'+_dec.hechas.map(_hechaHTML).join(''):'');
 }
+var _decEnviado=null;
+function _decPregs(){try{return JSON.parse(localStorage.getItem('dec_preg')||'{}');}catch(e){return {};}}
+function _decCorto(r){r=String(r).replace(/\s*\(aplicado\)/gi,'').replace(/[\u201c\u201d"]$/,'');var m=r.match(/^elijo\s+(\S+)\s*(?:—\s*([\s\S]*?))?(?:\.\s*Además:\s*([\s\S]*))?$/i);
+ var cut=function(x,n){x=String(x||'').trim();return x.length>n?x.slice(0,n-1)+'…':x;};
+ if(m)return '<b>'+_esc(m[1])+'</b>'+(m[2]?' · '+_esc(cut(m[2],70)):'')+(m[3]?' <span style="color:var(--esmb)">+ '+_esc(cut(m[3],70))+'</span>':'');
+ var o=r.match(/^otra cosa\s*—\s*([\s\S]*)$/i);if(o)return '<span style="color:var(--esmb)">Tu pedido:</span> '+_esc(cut(o[1],110));return _esc(cut(r,110));}
+function _hechaHTML(x){
+ if(!x.grupo)return '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px"><span style="color:var(--esmb);font-weight:700">✓</span><span style="flex:1 1 240px;font-size:13.5px">'+_esc(x.proy)+' · '+_esc(x.txt)+'</span><span style="font-size:12px;color:var(--mut)">'+_evAgo(x.t)+'</span></div>';
+ var pr=_decPregs(),n=x.grupo.length;
+ return '<div style="border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px;background:rgba(255,255,255,.03)"><span style="color:var(--esmb);font-weight:700">✓</span><span style="flex:1 1 200px;font-size:14px;font-weight:600">'+_esc(x.proy)+' · enviaste '+n+' decisi'+(n>1?'ones':'ón')+'</span><span style="font-size:12px;color:var(--mut)">'+_evAgo(x.t)+'</span></div>'
+  +x.grupo.map(function(g,k){var q=pr[x.proy+'/'+g.id]||g.id.replace(/-/g,' ');q=q.charAt(0).toUpperCase()+q.slice(1);
+   return '<div style="display:flex;flex-wrap:wrap;gap:4px 12px;padding:10px 16px;border-top:1px solid var(--line);font-size:13.5px;line-height:1.45"><span style="flex:0 0 22px;color:var(--mut)">'+(k+1)+'.</span><span style="flex:1 1 220px;color:var(--mut)">'+_esc(q)+'</span><span style="flex:2 1 300px">'+_decCorto(g.r)+'</span></div>';}).join('')+'</div>';}
 function _decList(){return _decDemo?_DEC_DEMO:_dec.pend;}
 function _decPick(i,j){var d=_decList()[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
 function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();delete _decNota[d.proy+'/'+d.id];renderDec();}}
@@ -977,11 +990,12 @@ function _decSumar(i){var d=_decList()[i],k=d.proy+'/'+d.id;var t=prompt('¿Qué
 function _decSinNota(i){var d=_decList()[i];delete _decNota[d.proy+'/'+d.id];renderDec();}
 async function _decMandar(){
  if(_decDemo){alert('Esto es un ejemplo: no se manda nada a la fábrica. Cuando sea real, tus elecciones le llegan al planificador y sigue solo.');return;}
- var por={};_dec.pend.forEach(function(d){var k=d.proy+'/'+d.id,v=_decSel[k];if(!v)return;var o=(d.opciones||[]).find(function(x){return x.k===v;});
+ var por={},_pq=_decPregs(),_n=0;_dec.pend.forEach(function(d){var k=d.proy+'/'+d.id,v=_decSel[k];if(!v)return;_n++;_pq[k]=d.pregunta||d.id;var o=(d.opciones||[]).find(function(x){return x.k===v;});
   (por[d.proy]=por[d.proy]||[]).push('DECISIÓN '+d.id+': '+(v.indexOf('OTRA:')===0?'otra cosa — '+v.slice(5):'elijo '+v+(o&&o.txt?' — '+o.txt:'')+(_decNota[k]?'. Además: '+_decNota[k]:'')));});
  var ps=Object.keys(por);if(!ps.length||!_supa)return;
  for(var i=0;i<ps.length;i++){var r=await _supa.from('mensajes').insert({proyecto:ps[i],rol:'facu',texto:'@planificador Mis decisiones desde el panel:\n'+por[ps[i]].join('\n')+'\nAplicalas y seguí sin esperarme.',estado:'pendiente'});if(r.error){alert('No se pudo mandar: '+r.error.message);return;}}
- _decSel={};_decNota={};fetchDec();
+ try{localStorage.setItem('dec_preg',JSON.stringify(_pq));}catch(e){}
+ _decSel={};_decNota={};_decEnviado={n:_n};fetchDec();try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
 }
 async function _decAprobarTodo(i){var d=_dec.pend[i];if(!_supa||!confirm('¿Aprobás lo que recomienda el director y que siga?'))return;
  var r=await _supa.from('mensajes').insert({proyecto:d.proy,rol:'facu',texto:'@planificador APRUEBO lo que recomendaste en tu último reporte. Aplicalo y seguí sin esperarme.',estado:'pendiente'});if(r.error){alert(r.error.message);return;}fetchDec();}
