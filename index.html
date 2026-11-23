@@ -478,6 +478,9 @@ body{background:#080a0b}
 #tg_cv{width:100%;height:160px;display:block}
 .term .vivo-code{top:300px!important}
 @media (max-width:900px){.term-graf{position:static;height:auto;margin:10px 0}}
+.term.espera::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:6;box-shadow:inset 0 0 0 4px rgba(224,166,78,.95),inset 0 0 120px rgba(224,166,78,.35);animation:luzA 1.4s ease-in-out infinite}
+.term.espera .tc{border-color:#E0A64E!important}
+@keyframes luzA{0%,100%{opacity:1}50%{opacity:.12}}
 </style>
 </head>
 <body>
@@ -1351,7 +1354,7 @@ function _consDemo(){_cons={ag:{},vistos:{}};var ag=[['k1','coder-frontend','C-0
 var _senal={n:0,tit:document.title,blink:null};
 function _senalDec(n){
  var P=document.getElementById('term_senal');if(P){P.style.display=n?'flex':'none';P.innerHTML=n?'<i></i>TE ESPERA'+(n>1?'N '+n+' DECISIONES':' 1 DECISIÓN')+' · TOCÁ PARA DECIDIR':'';}
- var C=document.querySelector('.sh-cara');if(C)C.classList.toggle('espera',!!n);
+ var C=document.querySelector('.sh-cara');if(C)C.classList.toggle('espera',!!n);var TT=document.getElementById('vivo_term');if(TT)TT.classList.toggle('espera',!!n);
  var N=document.querySelector('.navitem[data-v="decisiones"]');if(N)N.classList.toggle('senal-on',!!n);
  clearInterval(_senal.blink);if(n){var on=0;_senal.blink=setInterval(function(){on=!on;document.title=on?('● ('+n+') Decisión · Cronos'):_senal.tit;},1200);}else document.title=_senal.tit;
  if(n>_senal.n){try{if(window.Notification&&Notification.permission==='granted')new Notification('Cronos · te espera una decisión',{body:'La fábrica necesita que elijas algo. Tocá para decidir.',tag:'cronos-dec'}).onclick=function(){window.focus();_irDecisiones();};}catch(x){}
