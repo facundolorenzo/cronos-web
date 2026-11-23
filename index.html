@@ -404,9 +404,10 @@ body{background:#080a0b}
 .tc{position:absolute;width:22px;height:22px;border:0 solid #1f4a3d}
 .term-hud{position:absolute;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:#3d6a5c;z-index:2;text-transform:uppercase}
 .term-hud.tl{left:56px;top:40px}.term-hud.tl .quien{margin-top:10px;color:#35D29A;font-size:13.5px;letter-spacing:.06em;text-transform:none}
-.term-hud.tr{right:56px;top:40px;text-align:right;line-height:2}.term-hud.tr b{color:#9fe9c9;font-weight:400}
+.term-hud.tr{right:56px;top:40px;text-align:right;line-height:2}
+.term-lpm{margin-top:14px;width:300px;margin-left:auto}.term-lpm canvas{width:300px;height:90px;display:block}.term-lpm div{font-size:10px;letter-spacing:.18em}.term-hud.tr b{color:#9fe9c9;font-weight:400}
 .term-hud.bl{left:56px;bottom:40px;right:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.term-hud.bl b{color:#9fe9c9;font-weight:400}
-.term .vivo-code{position:absolute;left:40px;right:400px;top:120px;bottom:90px;overflow-y:auto;padding:0;font-size:19px;line-height:1.8;scrollbar-width:none;mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 100%)}
+.term .vivo-code{position:absolute;left:40px;right:390px;top:120px;bottom:90px;overflow-y:auto;padding:0;font-size:19px;line-height:1.8;scrollbar-width:none;mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 100%)}
 .term .vivo-code::-webkit-scrollbar{display:none}
 .term .vivo-ln{white-space:pre;word-break:normal;background:none!important}
 .term .vivo-ln .n{flex:0 0 56px;color:#1c3029}
@@ -501,7 +502,7 @@ body{background:#080a0b}
       <div class="term" id="vivo_term">
         <i class="tc" style="left:18px;top:18px;border-width:1px 0 0 1px"></i><i class="tc" style="right:18px;top:18px;border-width:1px 1px 0 0"></i><i class="tc" style="left:18px;bottom:18px;border-width:0 0 1px 1px"></i><i class="tc" style="right:18px;bottom:18px;border-width:0 1px 1px 0"></i>
         <div class="term-hud tl"><div id="hud_proy">CRONOS</div><div class="quien"><span class="vivo-luz" id="vivo_luz"></span> <span id="vivo_quien">—</span> · <span id="vivo_arch">—</span></div></div>
-        <div class="term-hud tr" id="sala_kpis"></div>
+        <div class="term-hud tr"><div id="sala_kpis"></div><div class="term-lpm"><canvas id="sala_lpm"></canvas><div>LÍNEAS POR MINUTO · <b id="sala_lpm_v">—</b></div></div></div>
         <div class="vivo-code" id="vivo_code"></div>
         <div class="term-hud bl" id="sala_cinta"></div>
         <div class="term-shai">
@@ -1186,9 +1187,9 @@ function _salaDibujar(){
   var sa=document.getElementById('sala_activos');if(sa)sa.textContent=act?act+' trabajando':'en espera';}
  try{_shaiOrb();}catch(x){}
  var L=_salaCanvas('sala_lpm');if(L&&L.w){var x2=L.x,m=Math.floor(Date.now()/60000),mx=1,vals=[];for(var i=29;i>=0;i--){var f=_sala.lpm.find(function(z){return z.m===m-i;});vals.push(f?f.n:0);}vals.forEach(function(v){mx=Math.max(mx,v);});
-  x2.clearRect(0,0,L.w,L.h);var bw=L.w/30;vals.forEach(function(v,i){var hh=(v/mx)*(L.h-18);x2.fillStyle=i===29?'#5EEBAE':'rgba(53,210,154,.45)';x2.fillRect(i*bw+1,L.h-hh-14,bw-2,Math.max(hh,v?2:0));});
+  x2.clearRect(0,0,L.w,L.h);var bw=L.w/30;vals.forEach(function(v,i){var hh=(v/mx)*(L.h-18);var gr=x2.createLinearGradient(0,L.h-14-hh,0,L.h-14);gr.addColorStop(0,i===29?'#C3E88D':'#35D29A');gr.addColorStop(1,'rgba(53,210,154,.08)');x2.fillStyle=gr;x2.fillRect(i*bw+1,L.h-hh-14,bw-2,Math.max(hh,v?2:0));});
   x2.fillStyle='#55605c';x2.font='10px "JetBrains Mono",monospace';x2.textAlign='left';x2.fillText('-30 min',0,L.h-2);x2.textAlign='right';x2.fillText('ahora',L.w,L.h-2);
-  var lv=document.getElementById('sala_lpm_v');if(lv)lv.textContent=vals[29]+' ahora · pico '+mx;}
+  var lv=document.getElementById('sala_lpm_v');if(lv)lv.textContent=vals[29]+' AHORA · PICO '+mx;}
 }
 function _salaKpis(){var K=document.getElementById('sala_kpis');if(!K)return;var k=_sala.kpi;
  var it=[['BLOQUE',k.bloque||'—',''],['ÓRDENES EN VERDE',k.verde==null?'—':k.verde,'ok'],['EN ROJO',k.rojo==null?'—':k.rojo,k.rojo?'mal':''],['TE ESPERAN',k.esp==null?'—':k.esp,k.esp?'esp':''],['LÍNEAS HOY',_vivo.n||0,'ok'],['ÚLTIMO AVISO',k.ult?_evAgo(k.ult):'—','']];
