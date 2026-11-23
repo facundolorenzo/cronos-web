@@ -1030,7 +1030,7 @@ function renderTablero(){
  }).join('');
  var tot=evs.length,ok=evs.filter(function(e){return e.estado==='trabajando'||e.estado==='terminado'||e.estado==='aprobado';}).length;
  document.getElementById('tb_sit').innerHTML=tot?'<div class="legend"><div class="leg"><span class="ld" style="background:#35D29A"></span><span class="lt">Trabajando / hecho</span><span class="lv">'+ok+'</span></div><div class="leg"><span class="ld" style="background:#E0A64E"></span><span class="lt">Te esperan</span><span class="lv">'+esp.length+'</span></div><div class="leg"><span class="ld" style="background:#E8695C"></span><span class="lt">Problemas</span><span class="lv">'+err.length+'</span></div></div><div style="font-size:11px;color:var(--mut);margin-top:8px">últimos '+tot+' avisos</div>':'<div style="color:var(--mut);font-size:12px">Sin datos todavía.</div>';
- document.getElementById('tb_te').innerHTML=esp.length?esp.slice(0,4).map(function(e){return '<div class="te"><span class="d"></span><div class="b"><div class="n">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="s">'+_esc(_shaiCorto(e.mensaje||'',80))+'</div></div><div class="btn" onclick="shaiAprobar(\''+_esc(e.proyecto)+'\')">Aprobar</div></div>';}).join(''):'<div style="color:var(--mut);font-size:12px">Nada pendiente. La fábrica sigue sola.</div>';
+ document.getElementById('tb_te').innerHTML=esp.length?esp.slice(0,4).map(function(e){return '<div class="te"><span class="d"></span><div class="b"><div class="n">'+_esc(e.proyecto)+' · '+_esc(e.etapa)+'</div><div class="s">'+_esc(_shaiCorto(e.mensaje||'',80))+'</div></div><div class="btn" onclick="_irDecisiones()">Ver y decidir</div></div>';}).join(''):'<div style="color:var(--mut);font-size:12px">Nada pendiente. La fábrica sigue sola.</div>';
  document.getElementById('tb_rend').innerHTML='<div style="color:var(--mut);font-size:12px">Se calcula con los veredictos de la fábrica (a la primera vs rebotes). Todavía no hay suficientes para mostrar un porcentaje honesto.</div>';
  document.getElementById('tb_cons').innerHTML='<div class="money">—</div><div class="subn">El gasto lo mide tu plan Max (claude.ai → Uso). El panel no lo ve todavía.</div>';
 }
@@ -1068,12 +1068,13 @@ window._shaiReporte=async function(){
   var ult='',ultT=null;try{var m=await _supa.from('mensajes').select('texto,created_at,rol').eq('proyecto',p).neq('rol','facu').order('created_at',{ascending:false}).limit(1);if(m.data&&m.data[0]){ult=m.data[0].texto;ultT=m.data[0].created_at;}}catch(x){}
   if(ult)linea+=' Último reporte ('+_evAgo(ultT)+'): «'+_esc(_shaiCorto(ult,160))+'»';
   partes.push(linea);voz.push(p+': '+quien+' '+est+'. '+(ult?'El director dice: '+_shaiCorto(ult,220):''));
-  if(e.estado==='esperando_ok')botones+='<button class="rep-btn" style="margin-top:8px;background:linear-gradient(135deg,#35D29A,#2BAF80);color:#06130d;border:0" onclick="shaiAprobar(\''+_esc(p)+'\')">✅ Aprobar '+_esc(p)+'</button>';
+  if(e.estado==='esperando_ok')botones+='<button class="rep-btn" style="margin-top:8px;background:linear-gradient(135deg,#35D29A,#2BAF80);color:#06130d;border:0" onclick="_irDecisiones()">Ver y decidir en Decisiones →</button>';
  }
  return {html:partes.join('<br>')+(botones?'<div>'+botones+'</div>':''),texto:voz.join(' ')};
 };
 window._shaiHablar=function(t){try{if(!('speechSynthesis' in window))return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='es-US';u.rate=1.02;var vs=speechSynthesis.getVoices().filter(function(v){return /^es/i.test(v.lang);});if(vs.length)u.voice=vs[0];u.onend=function(){try{window._shaiSpeak(false);window._shaiState('');}catch(e){}};speechSynthesis.speak(u);}catch(e){}};
 window._shaiCallar=function(){try{speechSynthesis.cancel();}catch(e){}};
+function _irDecisiones(){var b=document.querySelector('.shaibox');if(b)b.classList.remove('open');var f=document.getElementById('shaifab');if(f)f.textContent='Shai';nav('decisiones');window.scrollTo(0,0);}
 async function shaiAprobar(proy){
  if(!_supa)return;if(!confirm('¿Aprobar lo que hizo '+proy+' y que avance?'))return;
  var txt='APRUEBO. Antes de firmar: leé mis ajustes del panel con cable/leer-ajustes.ps1 y aplicalos si hay. Después firmá con fecha, subí todo con cable/subir.ps1 y avanzá a lo que sigue.';
