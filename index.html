@@ -583,6 +583,7 @@ body{background:#080a0b}
     <!-- ===== SALUD ===== -->
     <section class="view" id="view-salud">
       <div class="phead"><div><h1>Salud</h1><p>Lo que ya entregaste, que lo cuida Tony</p></div><div class="when"><div class="d">0 en producción</div><div class="t"><span class="dot">en vivo</span></div></div></div>
+      <div class="card" style="gap:12px;margin-bottom:18px"><div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><h2 style="margin:0;font-size:19px">Gasto de la fábrica por bloque</h2><span style="font-size:13px;color:var(--mut)">Menos revisiones por orden = menos crédito. Se actualiza solo.</span></div><div id="gasto_tab" style="overflow-x:auto"><div class="inc-empty">Todavía no llegaron números. Aparecen cuando el cable nuevo está encendido.</div></div></div>
       <div class="inc-empty">Nada en producción todavía. Cuando JAQUE salga a producción, Tony lo monitorea acá (errores, caídas, seguridad).</div>
     </section>
 
@@ -1235,7 +1236,7 @@ function _salaIngerir(lista,pri){lista.slice().reverse().forEach(function(e){if(
  var porOrden={};hoy.slice().reverse().forEach(function(e){var m=String(e.etapa).match(/C-\d+/);if(m)porOrden[m[0]]=e.estado;});
  _sala.kpi.verde=Object.keys(porOrden).filter(function(o){return porOrden[o]==='terminado';}).length;_sala.kpi.rojo=Object.keys(porOrden).filter(function(o){return porOrden[o]==='error';}).length;
  _sala.kpi.esp=hoy.length&&hoy[0].estado==='esperando_ok'?1:0;_sala.kpi.ult=_sala.evs[0]&&_sala.evs[0].created_at;_salaKpis();_salaCinta();}
-async function _salaTraer(){if(!_supa||_vivo.demo)return;try{var r=await _supa.from('eventos').select('*').neq('estado','codigo').order('created_at',{ascending:false}).limit(40);var pri=!_sala.cargado;_sala.cargado=true;_salaIngerir(r.data||[],pri);
+async function _salaTraer(){if(!_supa||_vivo.demo)return;try{var r=await _supa.from('eventos').select('*').not('estado','in','(codigo,metrica)').order('created_at',{ascending:false}).limit(40);var pri=!_sala.cargado;_sala.cargado=true;_salaIngerir(r.data||[],pri);
  var b=await _supa.from('mensajes').select('texto').eq('rol','director').order('created_at',{ascending:false}).limit(1);var bm=b.data&&b.data[0]&&String(b.data[0].texto).match(/[Bb]loque\s+\d+[^\n,.]{0,20}/);if(bm){_sala.kpi.bloque=bm[0].replace(/\*/g,'').trim().slice(0,22);_salaKpis();}}catch(x){}}
 function _salaDemo(){var t0=Date.now(),nm=['Klaus · C-049','Kevin · coder-frontend · C-049','Olga · verificador · C-048','Marvin · coder-backend · C-050','Agatha · diseño · C-049','Igor · seguridad'],ms=['Lanzó la orden: montos nuevos en Armar partida','Escribiendo la barra de montos','Veredicto: VERDE, el servidor acepta de $5 a $1.000','Escribiendo la validación del monto personalizado','Revisando contraste del premio: 4,9 : 1','Revisando el bloque contra OWASP'],es=['trabajando','trabajando','terminado','trabajando','trabajando','trabajando'];
  _sala.evs=[];_sala.vistosEv={};_sala.kpi={bloque:'Bloque 4 · desafío'};var lista=[];for(var i=0;i<14;i++){var j=i%6;lista.push({id:'d'+i,etapa:nm[j],estado:i===7?'esperando_ok':es[j],mensaje:ms[j],created_at:new Date(t0-(14-i)*90000).toISOString()});}
@@ -1277,6 +1278,13 @@ function _decToggle(i){var d=_decList()[i];_decAbierto[k0(d)]=!_decAbierto[k0(d)
 function _decRespAbrir(i){var d=_decList()[i];if(_decResp[k0(d)]==null)_decResp[k0(d)]='';renderDec();var t=document.getElementById('decr_'+i);if(t)t.focus();}
 async function _decResponder(i){var d=_decList()[i],t=document.getElementById('decr_'+i),v=t&&t.value.trim();if(!v||!_supa)return;if(_decDemo){alert('Es un ejemplo.');return;}
  var r=await _supa.from('mensajes').insert({proyecto:d.proy,rol:'facu',texto:'@planificador '+v,estado:'pendiente'});if(r.error){alert('No se pudo mandar: '+r.error.message);return;}delete _decResp[k0(d)];_decEnviado={n:1};fetchDec();}
+async function fetchGasto(){if(!_supa)return;var T=document.getElementById('gasto_tab');if(!T)return;
+ try{var r=await _supa.from('eventos').select('proyecto,mensaje,created_at').eq('estado','metrica').order('created_at',{ascending:false}).limit(20);var vis={},filas=[];
+ (r.data||[]).forEach(function(e){if(vis[e.proyecto])return;vis[e.proyecto]=1;var L=[];try{L=JSON.parse(e.mensaje);}catch(x){}L.sort(function(a,b){return String(a.desde).localeCompare(String(b.desde));});
+  L.forEach(function(m,i){var rpo=m.ordenes?m.veredictos/m.ordenes:0,prev=i?L[i-1]:null,prpo=prev&&prev.ordenes?prev.veredictos/prev.ordenes:null;
+   var h=(new Date(m.hasta)-new Date(m.desde))/36e5;filas.push('<tr><td><b>'+_esc(e.proyecto)+'</b> · '+_esc(m.bloque)+'</td><td>'+m.ordenes+'</td><td>'+m.veredictos+'</td><td style="font-weight:700;color:'+(rpo<=2.5?'var(--esmb)':rpo<=4?'var(--amber)':'var(--rojo)')+'">'+rpo.toFixed(1).replace('.',',')+(prpo!=null?' <span style="font-weight:400;color:var(--mut)">('+(rpo<prpo?'▼':'▲')+' '+Math.abs(Math.round((rpo-prpo)/prpo*100))+'%)</span>':'')+'</td><td>'+m.rojos+'</td><td>'+m.candados+'</td><td>'+(h>=1?Math.round(h)+' h':Math.round(h*60)+' min')+'</td></tr>');});});
+ if(!filas.length)return;T.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="text-align:left;color:var(--mut);font-size:12px">'+['Bloque','Órdenes','Revisiones','Revisiones por orden','Rebotes en rojo','Frenos del candado','Duración'].map(function(x){return '<th style="padding:8px 10px;border-bottom:1px solid var(--line)">'+x+'</th>';}).join('')+'</tr>'+filas.join('').replace(/<td>/g,'<td style="padding:10px;border-bottom:1px solid var(--line)">').replace(/<td style="font-weight/g,'<td style="padding:10px;border-bottom:1px solid var(--line);font-weight')+'</table>';}catch(x){}}
+setInterval(function(){try{fetchGasto();}catch(x){}},60000);setTimeout(function(){try{fetchGasto();}catch(x){}},3000);
 function _decList(){return _decDemo?_DEC_DEMO:_dec.pend;}
 function _decPick(i,j){var d=_decList()[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
 function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();delete _decNota[d.proy+'/'+d.id];renderDec();}}
@@ -1299,7 +1307,7 @@ setInterval(function(){try{fetchDec();}catch(e){}},30000);
 
 async function fetchEvs(){
  if(!_supa)return;var el=document.getElementById('evlist');if(!el)return;
- var r=await _supa.from('eventos').select('*').neq('estado','codigo').order('created_at',{ascending:false}).limit(12);
+ var r=await _supa.from('eventos').select('*').not('estado','in','(codigo,metrica)').order('created_at',{ascending:false}).limit(12);
  if(r.error){el.innerHTML='<div class="inc-empty">El cable todavía no está conectado (falta la tabla <b>eventos</b>). Corré <b>cable/eventos.sql</b> en Supabase y recargá.</div>';return;}
  var evs=r.data||[];_evs=evs;renderIncs();try{renderShaiFeed();}catch(e){}
  try{_shaiAutoReporte();}catch(e){}
