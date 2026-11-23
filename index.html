@@ -426,8 +426,8 @@ body{background:#080a0b}
 .term .shai-chips span{border-color:#13271f;color:#9fb8ae}
 .term-scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 3px),radial-gradient(ellipse at 40% 45%,transparent 55%,rgba(0,0,0,.6));pointer-events:none;z-index:1}
 @media (max-width:900px){.term{height:auto;min-height:0;display:flex;flex-direction:column;padding:22px 16px}.term-hud,.term .vivo-code,.term-shai{position:static}.term .vivo-code{height:60vh;font-size:13.5px;margin:14px 0}.term-hud.tr{text-align:left}.term-shai{width:auto}.term-hud.bl{white-space:normal}}
-.sh-cara{position:relative;width:100%;height:230px;margin:-4px 0 8px;border-radius:10px;overflow:hidden;background:#000}
-.sh-cara video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:scale(.82);transform-origin:50% 50%;transition:opacity .45s;-webkit-mask-image:radial-gradient(circle at 50% 50%,#000 62%,transparent 75%);mask-image:radial-gradient(circle at 50% 50%,#000 62%,transparent 75%)}
+.sh-cara{position:relative;width:100%;height:250px;margin:-4px 0 8px;border-radius:10px;overflow:hidden;background:#000}
+.sh-cara video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:translateY(9%) scale(.96);transform-origin:50% 0;transition:opacity .45s;-webkit-mask-image:linear-gradient(180deg,transparent 9%,#000 24%,#000 78%,transparent 97%);mask-image:linear-gradient(180deg,transparent 9%,#000 24%,#000 78%,transparent 97%)}
 #shai_h{opacity:0}.sh-cara.habla #shai_h{opacity:1}.sh-cara.habla #shai_q{opacity:0}
 .term{--acc:#b9c7c1;--acc2:#7f918a}
 .term .sh-mic{background:#1a2220;border:1px solid #33433e;color:#d7e2dd;font-size:15px}.term .sh-mic:hover{background:#243030}
@@ -438,6 +438,8 @@ body{background:#080a0b}
 .term .vivo-ln.sep .c{color:var(--acc2)}
 .term-hud.tr b,.term-hud.bl b{color:#cdd8d3}
 .term-shai{border-color:#1d2826}
+.dec-det{max-width:900px;font-size:15.5px;line-height:1.7;padding:18px 22px;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid var(--line)}
+.dec-det ul{padding-left:22px;margin:6px 0}.dec-det li{margin:4px 0}.dec-det h2,.dec-det h3{font-size:16px;margin:14px 0 6px}
 </style>
 </head>
 <body>
@@ -1021,7 +1023,7 @@ async function fetchDec(){
   if(luego.some(function(x){return /APRUEBO/i.test(x.texto);}))return;
   var arr=_parseDec(m.texto);
   if(arr){arr.forEach(function(d){if(d&&d.id&&!resp[m.proyecto+'/'+d.id])pend.push(Object.assign({proy:m.proyecto,t:m.created_at},d));});}
-  else if(!luego.length&&/decid|necesito|tu OK|aprob|elij|eleg[ií]|esperar|c[oó]mo seguir|frenad/i.test(m.texto))pend.push({proy:m.proyecto,t:m.created_at,id:'general',general:true,pregunta:(/frenad|saldo/i.test(m.texto)?'La fábrica está frenada y espera tu respuesta':'El director terminó y espera tu respuesta'),libre:_resumen(m.texto)});
+  else if(!luego.length&&/decid|necesito|tu OK|aprob|elij|eleg[ií]|esperar|c[oó]mo seguir|frenad/i.test(m.texto))pend.push({proy:m.proyecto,t:m.created_at,id:'general',general:true,pregunta:(/frenad|saldo/i.test(m.texto)?'La fábrica está frenada y espera tu respuesta':'El director terminó y espera tu respuesta'),libre:_resumen(m.texto),full:m.texto});
  });
  _dec={pend:pend,hechas:hechas.slice(0,5)};renderDec();
 }
@@ -1048,8 +1050,16 @@ function renderDec(){
    +'<h2 style="margin:4px 0 0;font-size:21px;font-weight:600">'+_esc(d.pregunta||'')+'</h2>'
    +(d.porque?'<p style="margin:6px 0 0;font-size:14.5px;color:var(--mut);line-height:1.5">'+_esc(d.porque)+'</p>':'');
   if(d.general){
-   return '<div class="card" style="gap:14px">'+head+'<div style="font-size:14px;line-height:1.55;white-space:pre-wrap;color:var(--texto)">'+_esc(d.libre||'')+'</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:10px"><button class="mbtn-pri" style="flex:0 1 auto;padding:13px 22px" onclick="_decAprobarTodo('+i+')">✅ Apruebo lo que recomendás</button><button class="mbtn-gh" onclick="_decAbrirChat('+i+')">Leer completo y responder</button></div></div>';
+   var lin=String(d.libre||'').split(/\n/).map(function(x){return x.replace(/^\s*[-*]\s*/,'').trim();}).filter(Boolean);
+   var lista='<ul style="margin:4px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:10px;font-size:16px;line-height:1.5">'+lin.map(function(x){var m=x.match(/^([^:]{3,40}):\s*(.*)$/);return '<li>'+(m?'<b>'+_esc(m[1])+':</b> '+_esc(m[2]):_esc(x))+'</li>';}).join('')+'</ul>';
+   var det=String(d.full||'').replace(/```decisiones[\s\S]*?```/g,'');var k=det.search(/##\s*DETALLE/i);det=k>=0?det.slice(k).replace(/##\s*DETALLE\s*/i,''):'';
+   var abierto=_decAbierto[k0(d)];
+   return '<div class="card" style="gap:16px">'+head+lista
+    +(abierto&&det?'<div class="dec-det">'+_mdLite(det)+'</div>':'')
+    +(_decResp[k0(d)]!=null?'<div style="display:flex;flex-direction:column;gap:8px"><textarea id="decr_'+i+'" placeholder="Escribí o dictá tu respuesta…" style="min-height:90px;background:#0c0f10;border:1px solid var(--line);border-radius:12px;color:var(--texto);padding:12px 14px;font-family:inherit;font-size:15px;line-height:1.5">'+_esc(_decResp[k0(d)])+'</textarea><div><button class="mbtn-pri" style="padding:11px 20px" onclick="_decResponder('+i+')">Mandar respuesta</button></div></div>':'')
+    +'<div style="display:flex;flex-wrap:wrap;gap:10px"><button class="mbtn-pri" style="flex:0 1 auto;padding:13px 22px" onclick="_decAprobarTodo('+i+')">✅ Apruebo lo que recomendás</button>'
+    +(det?'<button class="mbtn-gh" onclick="_decToggle('+i+')">'+(abierto?'Ocultar detalle':'Ver el detalle')+'</button>':'')
+    +'<button class="mbtn-gh" onclick="_decRespAbrir('+i+')">Responder otra cosa</button></div></div>';
   }
   var ops=(d.opciones||[]).map(function(o,j){var rec=d.recomendada===o.k,on=sel===o.k;
    return '<div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:14px;border:'+(on?'2px solid var(--esm)':'1px solid var(--line)')+';background:'+(rec?'rgba(53,210,154,.04)':'rgba(255,255,255,.02)')+'">'
@@ -1252,6 +1262,11 @@ function _vivoGrande(){var t=document.getElementById('vivo_term');try{if(documen
 var SHAI_VID={quieta:'https://d8j0ntlcm91z4.cloudfront.net/user_3AtiQJFS91IGh05FucXL8hr5qJI/hf_20261123_215912_a75f87b0-8b2e-4b93-8f50-8ed90961d6db.mp4',habla:'https://d8j0ntlcm91z4.cloudfront.net/user_3AtiQJFS91IGh05FucXL8hr5qJI/hf_20261123_215917_06b1d390-9103-49c8-941e-2d56df20f6d5.mp4'};
 function _shaiVid(){var q=document.getElementById('shai_q'),h=document.getElementById('shai_h');if(!q||q._ok)return;q._ok=1;q.src=SHAI_VID.quieta;h.src=SHAI_VID.habla;try{q.play();}catch(x){}}
 setInterval(function(){var c=document.querySelector('.sh-cara');if(!c)return;var on=!!_shaiHabla;if(c.classList.contains('habla')!==on){c.classList.toggle('habla',on);var h=document.getElementById('shai_h');try{if(on){h.currentTime=0;h.play();}else h.pause();}catch(x){}}},150);
+var _decAbierto={},_decResp={};function k0(d){return d.proy+'/'+d.id+'/'+d.t;}
+function _decToggle(i){var d=_decList()[i];_decAbierto[k0(d)]=!_decAbierto[k0(d)];renderDec();}
+function _decRespAbrir(i){var d=_decList()[i];if(_decResp[k0(d)]==null)_decResp[k0(d)]='';renderDec();var t=document.getElementById('decr_'+i);if(t)t.focus();}
+async function _decResponder(i){var d=_decList()[i],t=document.getElementById('decr_'+i),v=t&&t.value.trim();if(!v||!_supa)return;if(_decDemo){alert('Es un ejemplo.');return;}
+ var r=await _supa.from('mensajes').insert({proyecto:d.proy,rol:'facu',texto:'@planificador '+v,estado:'pendiente'});if(r.error){alert('No se pudo mandar: '+r.error.message);return;}delete _decResp[k0(d)];_decEnviado={n:1};fetchDec();}
 function _decList(){return _decDemo?_DEC_DEMO:_dec.pend;}
 function _decPick(i,j){var d=_decList()[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
 function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();delete _decNota[d.proy+'/'+d.id];renderDec();}}
