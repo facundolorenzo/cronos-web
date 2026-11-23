@@ -440,6 +440,16 @@ body{background:#080a0b}
 .term-shai{border-color:#1d2826}
 .dec-det{max-width:900px;font-size:15.5px;line-height:1.7;padding:18px 22px;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid var(--line)}
 .dec-det ul{padding-left:22px;margin:6px 0}.dec-det li{margin:4px 0}.dec-det h2,.dec-det h3{font-size:16px;margin:14px 0 6px}
+#incmodal .inc-grande{max-width:1180px;width:96vw;max-height:94vh;padding:30px 34px}
+#incmodal .inc-grande #i_chat{max-height:62vh;padding:4px 4px 4px 0}
+#incmodal .inc-grande #i_idea,#incmodal .inc-grande #i_nota{font-size:15px!important;color:#c9d1ce!important}
+#incmodal .inc-grande .mt{font-size:11.5px;color:#9AA19E}
+#incmodal .inc-grande #i_resp{font-size:15px!important;min-height:84px!important}
+.dirmsg{align-self:flex-start;max-width:94%;padding:16px 20px;border-radius:14px;background:#161b1a;border:1px solid #26302d;color:#EEF2F0}
+.dirmsg .dm-h{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:#9fb8ae;margin-bottom:8px}
+.dirmsg ul{padding-left:22px;margin:6px 0}.dirmsg li{margin:5px 0}.dirmsg b,.dirmsg strong{color:#fff}
+.dirmsg .dm-more{margin-top:10px;font-size:13.5px;color:#9fb8ae;cursor:pointer;text-decoration:underline}
+.mimsg{align-self:flex-end;max-width:80%;padding:12px 16px;border-radius:14px;background:rgba(53,210,154,.14);border:1px solid rgba(53,210,154,.28);color:#EEF2F0;white-space:pre-wrap}
 </style>
 </head>
 <body>
@@ -597,14 +607,14 @@ body{background:#080a0b}
 
 <!-- MODAL INCUBACIÓN -->
 <div class="modal" id="incmodal" onclick="if(event.target===this)closeModal('incmodal')">
-  <div class="modal-card">
+  <div class="modal-card inc-grande">
     <button class="mclose" onclick="closeModal('incmodal')">✕</button>
     <div class="mhead"><div><div class="mn" id="i_name"></div><div class="mr" id="i_sub"></div></div><span class="ec" id="i_badge"></span></div>
     <div class="i-steps" id="i_steps"></div>
     <div class="msec"><div class="mt">La idea</div><div id="i_idea" style="font-size:12.5px;color:var(--mut);line-height:1.55;white-space:pre-wrap"></div></div>
     <div class="msec"><div class="mt">Dónde está</div><div id="i_nota" style="font-size:12.5px;color:var(--mut);line-height:1.55"></div></div>
     <div class="msec"><div class="mt">El director · hablá desde acá</div>
-      <div id="i_chat" style="max-height:460px;overflow:auto;font-size:12.5px;line-height:1.55;display:flex;flex-direction:column;gap:8px;margin:8px 0"></div>
+      <div id="i_chat" style="overflow:auto;font-size:15px;line-height:1.6;display:flex;flex-direction:column;gap:8px;margin:8px 0"></div>
       <textarea id="i_resp" placeholder="Respondele al director… (ej: A en todo, firmo las tres etapas)" style="width:100%;min-height:64px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--texto);font-size:12.5px;padding:10px;font-family:inherit"></textarea>
       <button onclick="dirAprobar()" style="width:100%;margin-top:10px;padding:15px;border:0;border-radius:12px;background:linear-gradient(135deg,#35D29A,#2BAF80);color:#06130d;font-size:14.5px;font-weight:700;letter-spacing:.03em;cursor:pointer;font-family:inherit">✅ APROBAR Y AVANZAR</button>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -1397,16 +1407,18 @@ window._shaiEnviar=async function(q){
 };
 /* --- CHAT CON EL DIRECTOR (tabla mensajes; el lanzador en la compu hace el resto) --- */
 var _chatProy='';
+var _dmAbierto={};
 async function cargarChat(proy){
  _chatProy=proy;var el=document.getElementById('i_chat');if(!el||!_supa)return;
  var r=await _supa.from('mensajes').select('*').eq('proyecto',proy).order('created_at',{ascending:false}).limit(30);if(r.data)r.data.reverse();
  if(r.error){el.innerHTML='<div style="color:var(--mut)">El chat necesita la tabla <b>mensajes</b> (SQL del lanzador).</div>';return;}
  var ms=r.data||[];
  if(!ms.length){el.innerHTML='<div style="color:var(--mut)">Sin mensajes todavía. Cuando el director te escriba, aparece acá.</div>';return;}
- el.innerHTML=ms.map(function(m){
-  var mio=m.rol==='facu';
-  var pend=mio&&m.estado==='pendiente'?' · <i>esperando al director…</i>':'';
-  return '<div style="align-self:'+(mio?'flex-end':'flex-start')+';max-width:92%;padding:9px 12px;border-radius:12px;background:'+(mio?'rgba(53,210,154,.12)':'rgba(255,255,255,.05)')+';white-space:pre-wrap">'+(mio?'':'<b style="color:var(--esmb);font-size:11px">DIRECTOR</b><br>')+(mio?_esc(m.texto):_mdLite(String(m.texto).replace(/```decisiones[\s\S]*?```/g,'(Las opciones están en la pestaña Decisiones)')))+pend+'</div>';
+ el.innerHTML=ms.map(function(m,ix){
+  var mio=m.rol==='facu',t=String(m.texto||'').replace(/```decisiones[\s\S]*?```/g,'').trim();
+  if(mio)return '<div class="mimsg">'+_esc(t.replace(/^@planificador\s*/,''))+(m.estado==='pendiente'?'<div style="font-size:12px;color:#9AA19E;margin-top:4px">esperando a la fábrica…</div>':'')+'</div>';
+  var k=t.search(/##\s*DETALLE/i),corto=k>0?t.slice(0,k):t,det=k>0?t.slice(k):'';var id='dm'+ix,abierto=_dmAbierto[m.id];
+  return '<div class="dirmsg"><div class="dm-h">LA FÁBRICA · '+_evAgo(m.created_at)+'</div>'+_mdLite(abierto?t:corto)+(det?'<div class="dm-more" onclick="_dmAbierto[\''+m.id+'\']=!_dmAbierto[\''+m.id+'\'];cargarChat(_chatProy)">'+(abierto?'Ver menos':'Ver el detalle')+'</div>':'')+'</div>';
  }).join('');
  el.scrollTop=el.scrollHeight;
 }
