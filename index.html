@@ -959,7 +959,9 @@ function renderDec(){
     +'<button onclick="_decPick('+i+','+j+')" style="margin-top:auto;height:46px;border-radius:10px;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;'+(on?'border:0;background:var(--esm);color:#06231a':'border:1px solid rgba(255,255,255,.14);background:transparent;color:var(--texto)')+'">'+(on?'✓ Elegida':'Elijo '+_esc(o.k))+'</button></div>';}).join('');
   return '<div class="card" style="gap:14px">'+head+'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">'+ops+'</div>'
    +(sel&&sel.indexOf('OTRA:')===0?'<div style="font-size:13px;color:var(--esmb)">✓ Vas a pedir: '+_esc(sel.slice(5))+'</div>':'')
-   +'<div><button class="mbtn-gh" onclick="_decOtra('+i+')">Otra cosa (escribir o dictar)</button></div></div>';
+   +(sel&&sel.indexOf('OTRA:')!==0&&_decNota[k]?'<div style="font-size:13px;color:var(--esmb)">✓ Elegiste '+_esc(sel)+' y sumás: '+_esc(_decNota[k])+' <a href="#" onclick="_decSinNota('+i+');return false" style="color:var(--mut);margin-left:6px">quitar</a></div>':'')
+   +'<div style="display:flex;flex-wrap:wrap;gap:10px">'+(sel&&sel.indexOf('OTRA:')!==0?'<button class="mbtn-gh" onclick="_decSumar('+i+')">'+(_decNota[k]?'Cambiar lo que sumás':'Sumar un detalle a la '+_esc(sel))+'</button>':'')
+   +'<button class="mbtn-gh" onclick="_decOtra('+i+')">Otra cosa (ninguna sirve)</button></div></div>';
  }).join('');
  var sends=Object.keys(_decSel).filter(function(k){return P.some(function(d){return d.proy+'/'+d.id===k;});}).length,elegibles=P.filter(function(d){return !d.general;}).length;
  var S=document.getElementById('dec_send');
@@ -969,14 +971,17 @@ function renderDec(){
 }
 function _decList(){return _decDemo?_DEC_DEMO:_dec.pend;}
 function _decPick(i,j){var d=_decList()[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
-function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();renderDec();}}
+function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();delete _decNota[d.proy+'/'+d.id];renderDec();}}
+var _decNota={};
+function _decSumar(i){var d=_decList()[i],k=d.proy+'/'+d.id;var t=prompt('¿Qué le sumás a la '+_decSel[k]+'? (podés dictar)',_decNota[k]||'');if(t===null)return;if(t.trim())_decNota[k]=t.trim();else delete _decNota[k];renderDec();}
+function _decSinNota(i){var d=_decList()[i];delete _decNota[d.proy+'/'+d.id];renderDec();}
 async function _decMandar(){
  if(_decDemo){alert('Esto es un ejemplo: no se manda nada a la fábrica. Cuando sea real, tus elecciones le llegan al planificador y sigue solo.');return;}
  var por={};_dec.pend.forEach(function(d){var k=d.proy+'/'+d.id,v=_decSel[k];if(!v)return;var o=(d.opciones||[]).find(function(x){return x.k===v;});
-  (por[d.proy]=por[d.proy]||[]).push('DECISIÓN '+d.id+': '+(v.indexOf('OTRA:')===0?'otra cosa — '+v.slice(5):'elijo '+v+(o&&o.txt?' — '+o.txt:'')));});
+  (por[d.proy]=por[d.proy]||[]).push('DECISIÓN '+d.id+': '+(v.indexOf('OTRA:')===0?'otra cosa — '+v.slice(5):'elijo '+v+(o&&o.txt?' — '+o.txt:'')+(_decNota[k]?'. Además: '+_decNota[k]:'')));});
  var ps=Object.keys(por);if(!ps.length||!_supa)return;
  for(var i=0;i<ps.length;i++){var r=await _supa.from('mensajes').insert({proyecto:ps[i],rol:'facu',texto:'@planificador Mis decisiones desde el panel:\n'+por[ps[i]].join('\n')+'\nAplicalas y seguí sin esperarme.',estado:'pendiente'});if(r.error){alert('No se pudo mandar: '+r.error.message);return;}}
- _decSel={};fetchDec();
+ _decSel={};_decNota={};fetchDec();
 }
 async function _decAprobarTodo(i){var d=_dec.pend[i];if(!_supa||!confirm('¿Aprobás lo que recomienda el director y que siga?'))return;
  var r=await _supa.from('mensajes').insert({proyecto:d.proy,rol:'facu',texto:'@planificador APRUEBO lo que recomendaste en tu último reporte. Aplicalo y seguí sin esperarme.',estado:'pendiente'});if(r.error){alert(r.error.message);return;}fetchDec();}
