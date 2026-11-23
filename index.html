@@ -412,7 +412,7 @@ body{background:#080a0b}
 
     <!-- ===== FÁBRICA ===== -->
     <section class="view" id="view-decisiones">
-      <div class="phead"><div><h1 id="dec_h1">Decisiones</h1><p>Lo que la fábrica necesita que elijas. Tocás y sigue sola.</p></div><div class="when"><div class="d" id="dec_cnt">—</div><div class="t"><span class="dot">en vivo</span></div></div></div>
+      <div class="phead"><div><h1 id="dec_h1">Decisiones</h1><p>Lo que la fábrica necesita que elijas. Tocás y sigue sola. <button class="mbtn-gh" style="margin-left:8px;padding:6px 14px;font-size:13px" onclick="_decEjemplo()" id="dec_ej_btn">Ver un ejemplo</button></p></div><div class="when"><div class="d" id="dec_cnt">—</div><div class="t"><span class="dot">en vivo</span></div></div></div>
       <div id="dec_list" style="display:flex;flex-direction:column;gap:18px"><div class="inc-empty">Cargando…</div></div>
       <div id="dec_send"></div>
       <div id="dec_hechas"></div>
@@ -890,13 +890,18 @@ function _hexL(h){h=String(h||'').replace('#','');if(h.length===3)h=h.split('').
 function _contraste(a,b){var x=_hexL(a),y=_hexL(b);if(isNaN(x)||isNaN(y))return null;var hi=Math.max(x,y),lo=Math.min(x,y);return (hi+.05)/(lo+.05);}
 function _parseDec(txt){var m=/```decisiones\s*([\s\S]*?)```/.exec(txt||'');if(!m)return null;try{var a=JSON.parse(m[1]);return Array.isArray(a)?a:null;}catch(e){return null;}}
 function _resumen(txt){var t=String(txt||'');var i=t.search(/EN CORTO/i);if(i>=0)t=t.slice(i+9);var j=t.search(/\n##\s/);if(j>0)t=t.slice(0,j);return t.replace(/\*\*/g,'').trim().slice(0,900);}
-var _dec={pend:[],hechas:[]},_decSel={};
+var _dec={pend:[],hechas:[]},_decSel={},_decDemo=false;
+var _DEC_DEMO=[
+ {proy:'EJEMPLO',id:'verde',tema:'color',pregunta:'¿Qué verde usan los números de plata y Elo?',porque:'El verde actual casi no se lee sobre el fondo marfil de la app.',recomendada:'B',opciones:[{k:'A',txt:'Dejar el verde actual',muestra:{tipo:'color',color:'#16A34A',fondo:'#F4F1EA',texto:'+$24',texto2:'+32 Elo'}},{k:'B',txt:'Verde más oscuro en los números',muestra:{tipo:'color',color:'#256B41',fondo:'#F4F1EA',texto:'+$24',texto2:'+32 Elo'},nota:'Las barras siguen con el verde actual.'}]},
+ {proy:'EJEMPLO',id:'empate',tema:'plata',pregunta:'Si hay empate, ¿qué pasa con la plata?',recomendada:'B',opciones:[{k:'A',txt:'JAQUE cobra su 10%',muestra:{tipo:'texto',despues:'Cada uno recupera $4,50'}},{k:'B',txt:'Se devuelve todo',muestra:{tipo:'texto',despues:'Cada uno recupera sus $5'}}]},
+ {proy:'EJEMPLO',id:'recuperar',tema:'texto',pregunta:'Recuperar contraseña: ¿qué dice el mensaje?',recomendada:'A',opciones:[{k:'A',txt:'Código',muestra:{tipo:'texto',antes:'Te mandamos un enlace',despues:'Te mandamos un código de 6 números'}},{k:'B',txt:'Dejar como está',muestra:{tipo:'texto',despues:'Te mandamos un enlace'}}]}];
+function _decEjemplo(){_decDemo=!_decDemo;_decSel={};var b=document.getElementById('dec_ej_btn');if(b)b.textContent=_decDemo?'Salir del ejemplo':'Ver un ejemplo';renderDec();}
 async function fetchDec(){
  if(!_supa)return;
  var r=await _supa.from('mensajes').select('proyecto,rol,texto,created_at').order('created_at',{ascending:false}).limit(80);
  if(r.error)return;
  var ms=r.data||[],resp={},hechas=[],pend=[],visto={};
- ms.forEach(function(m){if(m.rol!=='facu')return;var t=String(m.texto||''),re=/DECISI[OÓ]N\s+([^\s:]+):\s*([^\n]*)/gi,d,algo=false;while((d=re.exec(t))){algo=true;resp[m.proyecto+'/'+d[1]]=1;hechas.push({proy:m.proyecto,txt:d[1]+': '+d[2],t:m.created_at});}
+ ms.forEach(function(m){if(m.rol!=='facu')return;var t=String(m.texto||''),re=/DECISI[OÓ]N\s+([^\s:]+):\s*([^\n]*)/gi,d,algo=false;while((d=re.exec(t))){algo=true;resp[m.proyecto+'/'+d[1]]=1;hechas.push({proy:m.proyecto,txt:d[1]+': '+String(d[2]).split(/(?<=\.)\s/)[0].slice(0,140),t:m.created_at});}
   var cab=t.replace(/^@\w+\s*/,'');if(algo||!/^APRUEBO/i.test(cab))return;
   var items=cab.split('\n').map(function(l){var x=/^\s*\d+[.)]\s*(.+)$/.exec(l);return x?x[1]:null;}).filter(Boolean);
   if(items.length)items.forEach(function(it){hechas.push({proy:m.proyecto,txt:it.replace(/\*\*/g,'').slice(0,150),t:m.created_at});});
@@ -919,14 +924,14 @@ function _muestraHTML(o){var mu=o.muestra||{};
  return '';
 }
 function renderDec(){
- var P=_dec.pend,n=P.length;
- var b=document.getElementById('dec_badge');if(b){b.style.display=n?'inline-flex':'none';b.textContent=n;}
+ var P=_decDemo?_DEC_DEMO:_dec.pend,n=P.length;
+ var b=document.getElementById('dec_badge');if(b){b.style.display=_dec.pend.length?'inline-flex':'none';b.textContent=_dec.pend.length;}
  var cnt=document.getElementById('dec_cnt');if(cnt)cnt.textContent=n?(n+' te espera'+(n>1?'n':'')):'al día';
  var h1=document.getElementById('dec_h1');if(h1)h1.textContent=n?('Te espera'+(n>1?'n ':' ')+n+' decisi'+(n>1?'ones':'ón')):'Decisiones';
- var tb=document.getElementById('tb_dec');
- if(tb)tb.innerHTML=n?'<div onclick="nav(\'decisiones\')" style="cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:18px 22px;border-radius:16px;border:1px solid rgba(224,166,78,.45);background:rgba(224,166,78,.08)"><span style="width:10px;height:10px;border-radius:5px;background:var(--amber);box-shadow:0 0 12px var(--amber)"></span><span style="flex:1 1 260px;font-size:15px"><b>'+_esc(P[0].proy)+'</b>: la fábrica espera '+n+' decisi'+(n>1?'ones tuyas':'ón tuya')+'. Tocá y sigue sola.</span><span style="font-weight:700;color:var(--amber)">Decidir ahora →</span></div>':'';
+ var tb=document.getElementById('tb_dec');var nReal=_dec.pend.length;
+ if(tb)tb.innerHTML=(nReal&&!_decDemo)?'<div onclick="nav(\'decisiones\')" style="cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:18px 22px;border-radius:16px;border:1px solid rgba(224,166,78,.45);background:rgba(224,166,78,.08)"><span style="width:10px;height:10px;border-radius:5px;background:var(--amber);box-shadow:0 0 12px var(--amber)"></span><span style="flex:1 1 260px;font-size:15px"><b>'+_esc(P[0].proy)+'</b>: la fábrica espera '+n+' decisi'+(n>1?'ones tuyas':'ón tuya')+'. Tocá y sigue sola.</span><span style="font-weight:700;color:var(--amber)">Decidir ahora →</span></div>':'';
  var L=document.getElementById('dec_list');if(!L)return;
- if(!n){L.innerHTML='<div class="inc-empty">Nada te espera. Cuando la fábrica necesite que elijas algo, aparece acá y Shai te avisa.</div>';}
+ if(!n){L.innerHTML='<div class="inc-empty">Nada te espera. Cuando la fábrica necesite que elijas algo, aparece acá y Shai te avisa.<br><br>Tocá <b>Ver un ejemplo</b> arriba para ver cómo se ve.</div>';}
  else L.innerHTML=P.map(function(d,i){
   var k=d.proy+'/'+d.id,sel=_decSel[k];
   var head='<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:.16em;color:var(--mut)">'+_esc(String(d.proy).toUpperCase())+' · '+(i+1)+' DE '+n+(d.tema?' · '+_esc(String(d.tema).toUpperCase()):'')+'</div>'
@@ -951,9 +956,11 @@ function renderDec(){
  var H=document.getElementById('dec_hechas');
  if(H)H.innerHTML=_dec.hechas.length?'<div style="font-size:14px;font-weight:600;color:var(--mut);margin:10px 0 8px">Ya decidiste</div>'+_dec.hechas.map(function(x){return '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px"><span style="color:var(--esmb);font-weight:700">✓</span><span style="flex:1 1 240px;font-size:13.5px">'+_esc(x.proy)+' · '+_esc(x.txt)+'</span><span style="font-size:12px;color:var(--mut)">'+_evAgo(x.t)+'</span></div>';}).join(''):'';
 }
-function _decPick(i,j){var d=_dec.pend[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
-function _decOtra(i){var d=_dec.pend[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();renderDec();}}
+function _decList(){return _decDemo?_DEC_DEMO:_dec.pend;}
+function _decPick(i,j){var d=_decList()[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
+function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();renderDec();}}
 async function _decMandar(){
+ if(_decDemo){alert('Esto es un ejemplo: no se manda nada a la fábrica. Cuando sea real, tus elecciones le llegan al planificador y sigue solo.');return;}
  var por={};_dec.pend.forEach(function(d){var k=d.proy+'/'+d.id,v=_decSel[k];if(!v)return;var o=(d.opciones||[]).find(function(x){return x.k===v;});
   (por[d.proy]=por[d.proy]||[]).push('DECISIÓN '+d.id+': '+(v.indexOf('OTRA:')===0?'otra cosa — '+v.slice(5):'elijo '+v+(o&&o.txt?' — '+o.txt:'')));});
  var ps=Object.keys(por);if(!ps.length||!_supa)return;
