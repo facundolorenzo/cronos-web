@@ -465,6 +465,12 @@ body{background:#080a0b}
 .term-der .term-lpm canvas{width:100%;height:56px}
 .term-der .sh-cara{height:clamp(90px,17vh,210px)}
 @media (max-width:900px){.term-der{position:static;width:auto}}
+.term-senal{position:absolute;left:50%;top:26px;transform:translateX(-50%);z-index:5;display:none;cursor:pointer;align-items:center;gap:10px;padding:9px 18px;border-radius:999px;background:rgba(224,166,78,.12);border:1px solid rgba(224,166,78,.6);color:#f3d29b;font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.08em;box-shadow:0 0 24px rgba(224,166,78,.25);animation:senalP 1.6s ease-in-out infinite}
+.term-senal i{width:10px;height:10px;border-radius:5px;background:#E0A64E;box-shadow:0 0 12px #E0A64E}
+@keyframes senalP{50%{box-shadow:0 0 44px rgba(224,166,78,.55);border-color:#E0A64E}}
+.sh-cara.espera::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(224,166,78,.28),transparent 65%);mix-blend-mode:screen;animation:senalC 1.6s ease-in-out infinite;pointer-events:none}
+@keyframes senalC{50%{opacity:.25}}
+.navitem.senal-on{box-shadow:inset 3px 0 0 #E0A64E}
 </style>
 </head>
 <body>
@@ -530,7 +536,7 @@ body{background:#080a0b}
 
     <!-- ===== FÁBRICA ===== -->
     <section class="view" id="view-decisiones">
-      <div class="phead"><div><h1 id="dec_h1">Decisiones</h1><p>Lo que la fábrica necesita que elijas. Tocás y sigue sola. <button class="mbtn-gh" style="margin-left:8px;padding:6px 14px;font-size:13px" onclick="_decEjemplo()" id="dec_ej_btn">Ver un ejemplo</button></p></div><div class="when"><div class="d" id="dec_cnt">—</div><div class="t"><span class="dot">en vivo</span></div></div></div>
+      <div class="phead"><div><h1 id="dec_h1">Decisiones</h1><p>Lo que la fábrica necesita que elijas. Tocás y sigue sola. <button class="mbtn-gh" style="margin-left:8px;padding:6px 14px;font-size:13px" onclick="_decEjemplo()" id="dec_ej_btn">Ver un ejemplo</button> <button class="mbtn-gh" style="margin-left:4px;padding:6px 14px;font-size:13px" onclick="_senalPermiso()" id="senal_btn">🔔 Avisarme en la compu</button></p></div><div class="when"><div class="d" id="dec_cnt">—</div><div class="t"><span class="dot">en vivo</span></div></div></div>
       <div id="dec_list" style="display:flex;flex-direction:column;gap:18px"><div class="inc-empty">Cargando…</div></div>
       <div id="dec_send"></div>
       <div id="dec_hechas"></div>
@@ -541,7 +547,7 @@ body{background:#080a0b}
       <div class="term" id="vivo_term">
         <i class="tc" style="left:18px;top:18px;border-width:1px 0 0 1px"></i><i class="tc" style="right:18px;top:18px;border-width:1px 1px 0 0"></i><i class="tc" style="left:18px;bottom:18px;border-width:0 0 1px 1px"></i><i class="tc" style="right:18px;bottom:18px;border-width:0 1px 1px 0"></i>
         <div class="term-hud tl"><div id="hud_proy">CRONOS</div><div class="quien"><span class="vivo-luz" id="vivo_luz"></span> <span id="vivo_quien">—</span> · <span id="vivo_arch">—</span></div></div>
-        <div class="term-alerta" id="term_alerta"></div>
+        <div class="term-alerta" id="term_alerta"></div><div class="term-senal" id="term_senal" onclick="_irDecisiones()"></div>
         <div class="vivo-code" id="vivo_code"></div>
         <div class="term-hud bl" id="sala_cinta"></div>
         <div class="term-der"><div class="term-hud tr"><div id="sala_kpis"></div><div class="term-lpm"><canvas id="sala_lpm"></canvas><div>LÍNEAS POR MINUTO · <b id="sala_lpm_v">—</b></div></div><div class="term-cons"><div>CONSUMO EN VIVO · <b id="cons_tot">—</b></div><div id="cons_bars"></div></div></div>        <div class="term-shai">
@@ -1067,7 +1073,7 @@ function renderDec(){
  var b=document.getElementById('dec_badge');if(b){b.style.display=_dec.pend.length?'inline-flex':'none';b.textContent=_dec.pend.length;}
  var cnt=document.getElementById('dec_cnt');if(cnt)cnt.textContent=n?(n+' te espera'+(n>1?'n':'')):'al día';
  var h1=document.getElementById('dec_h1');if(h1)h1.textContent=n?('Te espera'+(n>1?'n ':' ')+n+' decisi'+(n>1?'ones':'ón')):'Decisiones';
- var tb=document.getElementById('tb_dec');var nReal=_dec.pend.length;
+ var tb=document.getElementById('tb_dec');var nReal=_dec.pend.length;try{_senalDec(nReal);}catch(x){}
  if(tb)tb.innerHTML=(nReal&&!_decDemo)?'<div onclick="nav(\'decisiones\')" style="cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:18px 22px;border-radius:16px;border:1px solid rgba(224,166,78,.45);background:rgba(224,166,78,.08)"><span style="width:10px;height:10px;border-radius:5px;background:var(--amber);box-shadow:0 0 12px var(--amber)"></span><span style="flex:1 1 260px;font-size:15px"><b>'+_esc(P[0].proy)+'</b>: la fábrica espera '+n+' decisi'+(n>1?'ones tuyas':'ón tuya')+'. Tocá y sigue sola.</span><span style="font-weight:700;color:var(--amber)">Decidir ahora →</span></div>':'';
  var L=document.getElementById('dec_list');if(!L)return;
  if(!n){L.innerHTML='<div class="inc-empty">Nada te espera. Cuando la fábrica necesite que elijas algo, aparece acá y Shai te avisa.<br><br>Tocá <b>Ver un ejemplo</b> arriba para ver cómo se ve.</div>';}
@@ -1243,7 +1249,7 @@ function _salaDibujar(){
 }
 function _salaKpis(){var K=document.getElementById('sala_kpis');if(!K)return;var k=_sala.kpi;
  var it=[['BLOQUE',k.bloque||'—',''],['ÓRDENES EN VERDE',k.verde==null?'—':k.verde,'ok'],['EN ROJO',k.rojo==null?'—':k.rojo,k.rojo?'mal':''],['TE ESPERAN',k.esp==null?'—':k.esp,k.esp?'esp':''],['LÍNEAS HOY',_vivo.n||0,'ok'],['TOKENS BLOQUE',(function(){var c=window._consumo;if(!c)return '—';var t=0,top=null;Object.keys(c.m.consumo).forEach(function(k){t+=c.m.consumo[k].tokens;if(!top||c.m.consumo[k].tokens>c.m.consumo[top].tokens)top=k;});return _fmtTok(t)+' · más gasta '+top;})(),''],['ÚLTIMO AVISO',k.ult?_evAgo(k.ult):'—','']];
- K.innerHTML=it.slice(1).map(function(a){return _esc(a[0])+' <b>'+_esc(String(a[1]))+'</b>';}).join('<br>');var hp=document.getElementById('hud_proy');if(hp)hp.textContent='CRONOS · '+(k.bloque||'fábrica');}
+ K.innerHTML=it.slice(1).map(function(a){return _esc(a[0])+' <b>'+_esc(String(a[1]))+'</b>';}).join('<br>');var hp=document.getElementById('hud_proy');if(hp)hp.textContent='CRONOS · '+((window._consumo&&window._consumo.m&&('BLOQUE '+window._consumo.m.bloque))||k.bloque||'fábrica');}
 function _salaCinta(){var E=document.getElementById('sala_cinta');if(!E)return;
  E.innerHTML=_sala.evs.slice(0,4).map(function(e){var h=new Date(e.created_at);return ('0'+h.getHours()).slice(-2)+':'+('0'+h.getMinutes()).slice(-2)+' '+_esc(String(e.etapa).split('·')[0].trim())+' <b>'+_esc(String(e.mensaje).slice(0,46))+'</b>';}).join('&nbsp;&nbsp;/&nbsp;&nbsp;')||'esperando avisos…';
  _sala.evs.forEach(function(e){e._nuevo=false;});}
@@ -1327,6 +1333,17 @@ function _consDemo(){_cons={ag:{},vistos:{}};var ag=[['k1','coder-frontend','C-0
  ag.forEach(function(x){_cons.ag[x[0]]={agente:x[1],orden:x[2],tokens:x[3],t:Date.now(),hist:[[Date.now()-60000,x[3]*.9],[Date.now(),x[3]]]};});_consRender();
  clearInterval(_cons.dT);_cons.dT=setInterval(function(){if(!_vivo.demo){clearInterval(_cons.dT);return;}var now=Date.now();Object.keys(_cons.ag).forEach(function(k,i){var a=_cons.ag[k];var inc=(i===0&&Math.floor(now/15000)%3===0)?120000:20000+Math.random()*40000;a.tokens+=inc;a.t=now;a.hist.push([now,a.tokens]);a.hist=a.hist.filter(function(h){return now-h[0]<60000;});});_consRender();},2000);
  _alertas([{etapa:'Revisor · C-054',mensaje:'Posible loop: repitió 5 veces en 10 min → pnpm test -- armar',created_at:new Date().toISOString()}]);}
+/* ===== SEÑAL DE DECISIÓN PENDIENTE ===== */
+var _senal={n:0,tit:document.title,blink:null};
+function _senalDec(n){
+ var P=document.getElementById('term_senal');if(P){P.style.display=n?'flex':'none';P.innerHTML=n?'<i></i>TE ESPERA'+(n>1?'N '+n+' DECISIONES':' 1 DECISIÓN')+' · TOCÁ PARA DECIDIR':'';}
+ var C=document.querySelector('.sh-cara');if(C)C.classList.toggle('espera',!!n);
+ var N=document.querySelector('.navitem[data-v="decisiones"]');if(N)N.classList.toggle('senal-on',!!n);
+ clearInterval(_senal.blink);if(n){var on=0;_senal.blink=setInterval(function(){on=!on;document.title=on?('● ('+n+') Decisión · Cronos'):_senal.tit;},1200);}else document.title=_senal.tit;
+ if(n>_senal.n){try{if(window.Notification&&Notification.permission==='granted')new Notification('Cronos · te espera una decisión',{body:'La fábrica necesita que elijas algo. Tocá para decidir.',tag:'cronos-dec'}).onclick=function(){window.focus();_irDecisiones();};}catch(x){}
+  try{if(typeof _shaiDecir==='function'&&_senal.n>=0&&_senal.iniciado)_shaiDecir('Te espera '+(n>1?n+' decisiones':'una decisión')+'. Entrá a Decisiones cuando puedas.');}catch(x){}}
+ _senal.n=n;_senal.iniciado=1;}
+function _senalPermiso(){try{Notification.requestPermission().then(function(p){var b=document.getElementById('senal_btn');if(b)b.textContent=p==='granted'?'🔔 Avisos activados':'Avisos bloqueados en el navegador';});}catch(x){}}
 function _decList(){return _decDemo?_DEC_DEMO:_dec.pend;}
 function _decPick(i,j){var d=_decList()[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
 function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();delete _decNota[d.proy+'/'+d.id];renderDec();}}
