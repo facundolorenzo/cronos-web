@@ -460,10 +460,10 @@ body{background:#080a0b}
 .term-alerta div{background:rgba(232,105,92,.12);border:1px solid rgba(232,105,92,.45);color:#f3c4bd;border-radius:10px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px}
 .term-der{position:absolute;right:40px;top:36px;bottom:36px;width:330px;display:flex;flex-direction:column;gap:12px;z-index:3;min-height:0}
 .term-der .term-hud.tr{position:static;flex:0 0 auto}
-.term-der .term-shai{position:static;width:auto;margin-top:auto;flex:0 1 auto;min-height:0;overflow:hidden}
+.term-der .term-shai{position:static;width:auto;margin-top:auto;flex:0 0 auto}
 .term-der .term-lpm,.term-der .term-cons{width:auto}
 .term-der .term-lpm canvas{width:100%;height:56px}
-.term-der .sh-cara{height:clamp(110px,22vh,230px)}
+.term-der .sh-cara{height:clamp(90px,17vh,210px)}
 @media (max-width:900px){.term-der{position:static;width:auto}}
 </style>
 </head>
@@ -1252,7 +1252,7 @@ function _salaIngerir(lista,pri){lista.slice().reverse().forEach(function(e){if(
  var porOrden={};hoy.slice().reverse().forEach(function(e){var m=String(e.etapa).match(/C-\d+/);if(m)porOrden[m[0]]=e.estado;});
  _sala.kpi.verde=Object.keys(porOrden).filter(function(o){return porOrden[o]==='terminado';}).length;_sala.kpi.rojo=Object.keys(porOrden).filter(function(o){return porOrden[o]==='error';}).length;
  _sala.kpi.esp=hoy.length&&hoy[0].estado==='esperando_ok'?1:0;_sala.kpi.ult=_sala.evs[0]&&_sala.evs[0].created_at;_salaKpis();_salaCinta();}
-async function _salaTraer(){if(!_supa||_vivo.demo)return;try{var r=await _supa.from('eventos').select('*').not('estado','in','(codigo,metrica,consumo)').order('created_at',{ascending:false}).limit(40);var pri=!_sala.cargado;_sala.cargado=true;_salaIngerir(r.data||[],pri);
+async function _salaTraer(){if(!_supa||_vivo.demo)return;try{var r=await _supa.from('eventos').select('*').order('created_at',{ascending:false}).limit(120);if(r.data)r.data=r.data.filter(function(e){return ['codigo','metrica','consumo'].indexOf(e.estado)<0;}).slice(0,40);var pri=!_sala.cargado;_sala.cargado=true;_salaIngerir(r.data||[],pri);
  var b=await _supa.from('mensajes').select('texto').eq('rol','director').order('created_at',{ascending:false}).limit(1);var bm=b.data&&b.data[0]&&String(b.data[0].texto).match(/[Bb]loque\s+\d+[^\n,.]{0,20}/);if(bm){_sala.kpi.bloque=bm[0].replace(/\*/g,'').trim().slice(0,22);_salaKpis();}}catch(x){}}
 function _salaDemo(){var t0=Date.now(),nm=['Klaus · C-049','Kevin · coder-frontend · C-049','Olga · verificador · C-048','Marvin · coder-backend · C-050','Agatha · diseño · C-049','Igor · seguridad'],ms=['Lanzó la orden: montos nuevos en Armar partida','Escribiendo la barra de montos','Veredicto: VERDE, el servidor acepta de $5 a $1.000','Escribiendo la validación del monto personalizado','Revisando contraste del premio: 4,9 : 1','Revisando el bloque contra OWASP'],es=['trabajando','trabajando','terminado','trabajando','trabajando','trabajando'];
  _sala.evs=[];_sala.vistosEv={};_sala.kpi={bloque:'Bloque 4 · desafío'};var lista=[];for(var i=0;i<14;i++){var j=i%6;lista.push({id:'d'+i,etapa:nm[j],estado:i===7?'esperando_ok':es[j],mensaje:ms[j],created_at:new Date(t0-(14-i)*90000).toISOString()});}
@@ -1349,7 +1349,7 @@ setInterval(function(){try{fetchDec();}catch(e){}},30000);
 
 async function fetchEvs(){
  if(!_supa)return;var el=document.getElementById('evlist');if(!el)return;
- var r=await _supa.from('eventos').select('*').not('estado','in','(codigo,metrica,consumo)').order('created_at',{ascending:false}).limit(12);
+ var r=await _supa.from('eventos').select('*').order('created_at',{ascending:false}).limit(80);if(r.data)r.data=r.data.filter(function(e){return ['codigo','metrica','consumo'].indexOf(e.estado)<0;}).slice(0,12);
  if(r.error){el.innerHTML='<div class="inc-empty">El cable todavía no está conectado (falta la tabla <b>eventos</b>). Corré <b>cable/eventos.sql</b> en Supabase y recargá.</div>';return;}
  var evs=r.data||[];_evs=evs;renderIncs();try{renderShaiFeed();}catch(e){}
  try{_shaiAutoReporte();}catch(e){}
