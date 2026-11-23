@@ -450,6 +450,21 @@ body{background:#080a0b}
 .dirmsg ul{padding-left:22px;margin:6px 0}.dirmsg li{margin:5px 0}.dirmsg b,.dirmsg strong{color:#fff}
 .dirmsg .dm-more{margin-top:10px;font-size:13.5px;color:#9fb8ae;cursor:pointer;text-decoration:underline}
 .mimsg{align-self:flex-end;max-width:80%;padding:12px 16px;border-radius:14px;background:rgba(53,210,154,.14);border:1px solid rgba(53,210,154,.28);color:#EEF2F0;white-space:pre-wrap}
+.term-cons{margin-top:16px;width:300px;margin-left:auto;text-align:left}.term-cons>div:first-child{font-size:10px;letter-spacing:.18em;text-align:right;margin-bottom:6px}
+.cb{display:grid;grid-template-columns:1fr;gap:3px;margin:7px 0;letter-spacing:.04em;text-transform:none;font-size:11.5px;color:#9fb0aa}
+.cb .l{display:flex;justify-content:space-between}.cb .l b{color:#dfe8e4;font-weight:400}
+.cb .t{height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}.cb .t i{display:block;height:100%;border-radius:3px;background:#8fa39b;transition:width .9s ease}
+.cb.rap .t i{background:#E0A64E;animation:cbP 1s infinite}.cb.rap .l b{color:#E0A64E}
+@keyframes cbP{50%{opacity:.55}}
+.term-alerta{position:absolute;left:56px;right:420px;top:86px;z-index:4;display:flex;flex-direction:column;gap:6px}
+.term-alerta div{background:rgba(232,105,92,.12);border:1px solid rgba(232,105,92,.45);color:#f3c4bd;border-radius:10px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.term-der{position:absolute;right:40px;top:36px;bottom:36px;width:330px;display:flex;flex-direction:column;gap:12px;z-index:3;min-height:0}
+.term-der .term-hud.tr{position:static;flex:0 0 auto}
+.term-der .term-shai{position:static;width:auto;margin-top:auto;flex:0 1 auto;min-height:0;overflow:hidden}
+.term-der .term-lpm,.term-der .term-cons{width:auto}
+.term-der .term-lpm canvas{width:100%;height:56px}
+.term-der .sh-cara{height:clamp(110px,22vh,230px)}
+@media (max-width:900px){.term-der{position:static;width:auto}}
 </style>
 </head>
 <body>
@@ -526,15 +541,16 @@ body{background:#080a0b}
       <div class="term" id="vivo_term">
         <i class="tc" style="left:18px;top:18px;border-width:1px 0 0 1px"></i><i class="tc" style="right:18px;top:18px;border-width:1px 1px 0 0"></i><i class="tc" style="left:18px;bottom:18px;border-width:0 0 1px 1px"></i><i class="tc" style="right:18px;bottom:18px;border-width:0 1px 1px 0"></i>
         <div class="term-hud tl"><div id="hud_proy">CRONOS</div><div class="quien"><span class="vivo-luz" id="vivo_luz"></span> <span id="vivo_quien">—</span> · <span id="vivo_arch">—</span></div></div>
-        <div class="term-hud tr"><div id="sala_kpis"></div><div class="term-lpm"><canvas id="sala_lpm"></canvas><div>LÍNEAS POR MINUTO · <b id="sala_lpm_v">—</b></div></div></div>
+        <div class="term-alerta" id="term_alerta"></div>
         <div class="vivo-code" id="vivo_code"></div>
         <div class="term-hud bl" id="sala_cinta"></div>
-        <div class="term-shai">
+        <div class="term-der"><div class="term-hud tr"><div id="sala_kpis"></div><div class="term-lpm"><canvas id="sala_lpm"></canvas><div>LÍNEAS POR MINUTO · <b id="sala_lpm_v">—</b></div></div><div class="term-cons"><div>CONSUMO EN VIVO · <b id="cons_tot">—</b></div><div id="cons_bars"></div></div></div>        <div class="term-shai">
           <div class="sh-cara"><video id="shai_q" muted loop playsinline autoplay preload="auto" poster="https://d8j0ntlcm91z4.cloudfront.net/user_3AtiQJFS91IGh05FucXL8hr5qJI/hf_20261123_215743_06e2d105-7765-4d14-8561-c742499761f7.png"></video><video id="shai_h" muted loop playsinline preload="auto"></video></div>
           <div class="sh-h"><canvas id="shai_v_orb" style="display:none"></canvas><span>SHAI</span><span id="shai_v_est" class="sh-est">preguntame</span><span id="vivo_cuenta" style="display:none"></span></div>
           <div id="shai_v_resp" class="sh-r">Preguntame cómo viene la fábrica. Te contesto en voz alta.</div>
           <div class="shai-chips"><span onclick="_shaiV('¿Cómo viene?')">¿Cómo viene?</span><span onclick="_shaiV('¿Qué está haciendo?')">¿Qué hace?</span><span onclick="_shaiV('¿Qué me falta decidir?')">¿Qué decido?</span><span onclick="_shaiV('¿Hay algo frenado?')">¿Frenos?</span></div>
           <div style="display:flex;gap:6px;margin-top:8px"><input id="shai_v_in" placeholder="Preguntale algo…" onkeydown="if(event.key==='Enter'){_shaiV(this.value);this.value='';}"><button onclick="_shaiMic()" title="Hablar" class="sh-mic">🎙</button><button onclick="_shaiCallar()" title="Callar" class="sh-stop">■</button></div>
+        </div>
         </div>
         <div class="term-scan"></div>
       </div>
@@ -1151,7 +1167,7 @@ async function _vivoTraer(){
    _vivoEncolar(c);});
   if(!_vivo.corriendo)_vivoHead(_vivo.actual,false);
  }catch(x){}}
-function _vivoAbrir(){try{_shaiVid();}catch(x){}if(!_sala.raf)_salaDibujar();_salaKpis();if(!_vivo.timer){_vivoTraer();_salaTraer();_vivo.timer=setInterval(function(){_vivoTraer();_salaTraer();},5000);}if(!_vivo.files.length&&!_vivo.demo){var C=document.getElementById('vivo_code');if(C&&!C.children.length)C.innerHTML='<div class="vivo-ln"><span class="n"></span><span class="s"></span><span class="c tk-c">// Esperando que un agente guarde código… Tocá "Ver un ejemplo" para ver cómo se ve.</span></div>';_vivoHead(null,false);}}
+function _vivoAbrir(){try{_shaiVid();}catch(x){}if(!_sala.raf)_salaDibujar();_salaKpis();if(!_vivo.timer){_vivoTraer();_salaTraer();_vivo.timer=setInterval(function(){_vivoTraer();_salaTraer();_consTraer();},5000);_consTraer();}if(!_vivo.files.length&&!_vivo.demo){var C=document.getElementById('vivo_code');if(C&&!C.children.length)C.innerHTML='<div class="vivo-ln"><span class="n"></span><span class="s"></span><span class="c tk-c">// Esperando que un agente guarde código… Tocá "Ver un ejemplo" para ver cómo se ve.</span></div>';_vivoHead(null,false);}}
 var _VIVO_DEMO=[
  {quien:'Kevin · coder-frontend',orden:'C-049',archivo:'chesskernel/client/src/pantallas/armar.js',desde:42,lineas:[
   ' // Montos de entrada de la partida por plata',
@@ -1188,8 +1204,8 @@ function _vivoEjemplo(){
  _vivo.demo=!_vivo.demo;var B=document.getElementById('vivo_ej_btn');if(B)B.textContent=_vivo.demo?'Salir del ejemplo':'Ver un ejemplo';
  var C=document.getElementById('vivo_code');if(C)C.innerHTML='';_vivo.cola=[];_vivo.files=[];_vivo.n=0;_vivo.corriendo=false;
  _sala.lpm=[];_sala.act={};
- if(_vivo.demo){_VIVO_DEMO.forEach(function(c){_vivoEncolar(JSON.parse(JSON.stringify(c)));});_salaDemo();}
- else{_vivo.vistos={};_vivo.cargado=false;_sala.evs=[];_sala.vistosEv={};_sala.cargado=false;_sala.kpi={};_vivoAbrir();_vivoTraer();_salaTraer();}
+ if(_vivo.demo){_VIVO_DEMO.forEach(function(c){_vivoEncolar(JSON.parse(JSON.stringify(c)));});_salaDemo();_consDemo();}
+ else{_cons={ag:{},vistos:{}};_alertas([]);_vivo.vistos={};_vivo.cargado=false;_sala.evs=[];_sala.vistosEv={};_sala.cargado=false;_sala.kpi={};_vivoAbrir();_vivoTraer();_salaTraer();}
 }
 
 /* ===== SALA DE CONTROL ===== */
@@ -1236,7 +1252,7 @@ function _salaIngerir(lista,pri){lista.slice().reverse().forEach(function(e){if(
  var porOrden={};hoy.slice().reverse().forEach(function(e){var m=String(e.etapa).match(/C-\d+/);if(m)porOrden[m[0]]=e.estado;});
  _sala.kpi.verde=Object.keys(porOrden).filter(function(o){return porOrden[o]==='terminado';}).length;_sala.kpi.rojo=Object.keys(porOrden).filter(function(o){return porOrden[o]==='error';}).length;
  _sala.kpi.esp=hoy.length&&hoy[0].estado==='esperando_ok'?1:0;_sala.kpi.ult=_sala.evs[0]&&_sala.evs[0].created_at;_salaKpis();_salaCinta();}
-async function _salaTraer(){if(!_supa||_vivo.demo)return;try{var r=await _supa.from('eventos').select('*').not('estado','in','(codigo,metrica)').order('created_at',{ascending:false}).limit(40);var pri=!_sala.cargado;_sala.cargado=true;_salaIngerir(r.data||[],pri);
+async function _salaTraer(){if(!_supa||_vivo.demo)return;try{var r=await _supa.from('eventos').select('*').not('estado','in','(codigo,metrica,consumo)').order('created_at',{ascending:false}).limit(40);var pri=!_sala.cargado;_sala.cargado=true;_salaIngerir(r.data||[],pri);
  var b=await _supa.from('mensajes').select('texto').eq('rol','director').order('created_at',{ascending:false}).limit(1);var bm=b.data&&b.data[0]&&String(b.data[0].texto).match(/[Bb]loque\s+\d+[^\n,.]{0,20}/);if(bm){_sala.kpi.bloque=bm[0].replace(/\*/g,'').trim().slice(0,22);_salaKpis();}}catch(x){}}
 function _salaDemo(){var t0=Date.now(),nm=['Klaus · C-049','Kevin · coder-frontend · C-049','Olga · verificador · C-048','Marvin · coder-backend · C-050','Agatha · diseño · C-049','Igor · seguridad'],ms=['Lanzó la orden: montos nuevos en Armar partida','Escribiendo la barra de montos','Veredicto: VERDE, el servidor acepta de $5 a $1.000','Escribiendo la validación del monto personalizado','Revisando contraste del premio: 4,9 : 1','Revisando el bloque contra OWASP'],es=['trabajando','trabajando','terminado','trabajando','trabajando','trabajando'];
  _sala.evs=[];_sala.vistosEv={};_sala.kpi={bloque:'Bloque 4 · desafío'};var lista=[];for(var i=0;i<14;i++){var j=i%6;lista.push({id:'d'+i,etapa:nm[j],estado:i===7?'esperando_ok':es[j],mensaje:ms[j],created_at:new Date(t0-(14-i)*90000).toISOString()});}
@@ -1278,7 +1294,7 @@ function _decToggle(i){var d=_decList()[i];_decAbierto[k0(d)]=!_decAbierto[k0(d)
 function _decRespAbrir(i){var d=_decList()[i];if(_decResp[k0(d)]==null)_decResp[k0(d)]='';renderDec();var t=document.getElementById('decr_'+i);if(t)t.focus();}
 async function _decResponder(i){var d=_decList()[i],t=document.getElementById('decr_'+i),v=t&&t.value.trim();if(!v||!_supa)return;if(_decDemo){alert('Es un ejemplo.');return;}
  var r=await _supa.from('mensajes').insert({proyecto:d.proy,rol:'facu',texto:'@planificador '+v,estado:'pendiente'});if(r.error){alert('No se pudo mandar: '+r.error.message);return;}delete _decResp[k0(d)];_decEnviado={n:1};fetchDec();}
-function _fmtTok(n){return n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' M':n>=1e3?Math.round(n/1e3)+' mil':String(n);}
+function _fmtTok(n){return n>=995000?(n/1e6).toFixed(1).replace('.',',')+' M':n>=1e3?Math.round(n/1e3)+' mil':String(n);}
 async function fetchGasto(){if(!_supa)return;var T=document.getElementById('gasto_tab');if(!T)return;
  try{var r=await _supa.from('eventos').select('proyecto,mensaje,created_at').eq('estado','metrica').order('created_at',{ascending:false}).limit(20);var vis={},filas=[];
  (r.data||[]).forEach(function(e){if(vis[e.proyecto])return;vis[e.proyecto]=1;var L=[];try{L=JSON.parse(e.mensaje);}catch(x){}L.sort(function(a,b){return String(a.desde).localeCompare(String(b.desde));});
@@ -1293,6 +1309,24 @@ async function fetchGasto(){if(!_supa)return;var T=document.getElementById('gast
   +'<div style="font-size:12.5px;color:var(--mut);margin-top:8px">"×N" = cuántas veces se lanzó ese agente. Si uno pasa del 35%, ahí conviene ajustar.</div></div>';}
  if(!filas.length)return;T.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="text-align:left;color:var(--mut);font-size:12px">'+['Bloque','Órdenes','Revisiones','Revisiones por orden','Rebotes en rojo','Frenos del candado','Duración'].map(function(x){return '<th style="padding:8px 10px;border-bottom:1px solid var(--line)">'+x+'</th>';}).join('')+'</tr>'+filas.join('').replace(/<td>/g,'<td style="padding:10px;border-bottom:1px solid var(--line)">').replace(/<td style="font-weight/g,'<td style="padding:10px;border-bottom:1px solid var(--line);font-weight')+'</table>'+consHTML;}catch(x){}}
 setInterval(function(){try{fetchGasto();}catch(x){}},60000);setTimeout(function(){try{fetchGasto();}catch(x){}},3000);
+/* ===== CONSUMO EN VIVO por agente ===== */
+var _cons={ag:{},vistos:{}};
+var _CN2={'coder-frontend':'Front','coder-backend':'Back','coder-datos':'Datos','verificador':'Revisor','verificador-diseno':'Diseño','seguridad':'Seguridad','planificador':'Klaus'};
+function _consIngerir(lista){var now=Date.now();lista.forEach(function(c){var a=_cons.ag[c.agent_id]||(_cons.ag[c.agent_id]={hist:[]});a.agente=c.agente;a.orden=c.orden;a.tokens=c.tokens;a.t=new Date(c.cuando).getTime()||now;a.hist.push([a.t,c.tokens]);a.hist=a.hist.filter(function(h){return a.t-h[0]<180000;});});_consRender();}
+function _consRender(){var B=document.getElementById('cons_bars');if(!B)return;var now=Date.now(),ks=Object.keys(_cons.ag).filter(function(k){return now-_cons.ag[k].t<600000;});
+ var max=1,tot=0,rates=[];ks.forEach(function(k){var a=_cons.ag[k];max=Math.max(max,a.tokens);tot+=a.tokens;var h=a.hist,r=0;if(h.length>1){var dt=(h[h.length-1][0]-h[0][0])/60000;r=dt>0?(h[h.length-1][1]-h[0][1])/dt:0;}a.rate=r;rates.push(r);});
+ rates.sort(function(a,b){return a-b;});var med=rates.length?rates[Math.floor(rates.length/2)]:0;
+ ks.sort(function(a,b){return _cons.ag[b].tokens-_cons.ag[a].tokens;});
+ B.innerHTML=ks.slice(0,4).map(function(k){var a=_cons.ag[k],rap=a.rate>Math.max(250000,med*2);return '<div class="cb'+(rap?' rap':'')+'"><div class="l"><span>'+_esc(_CN2[a.agente]||a.agente)+(a.orden?' · '+_esc(a.orden):'')+'</span><b>'+_fmtTok(a.tokens)+(a.rate>0?' · +'+_fmtTok(Math.round(a.rate))+'/min':'')+(rap?' ⚠':'')+'</b></div><div class="t"><i style="width:'+(a.tokens/max*100).toFixed(1)+'%"></i></div></div>';}).join('')||'<div class="cb"><div class="l"><span>sin agentes activos</span></div></div>';
+ var T=document.getElementById('cons_tot');if(T)T.textContent=ks.length?_fmtTok(tot)+' · '+ks.length+' activos':'—';}
+function _alertas(lista){var A=document.getElementById('term_alerta');if(!A)return;var now=Date.now();A.innerHTML=lista.filter(function(e){return now-new Date(e.created_at).getTime()<1800000;}).slice(0,2).map(function(e){return '<div>⚠ '+_esc(e.etapa)+': '+_esc(String(e.mensaje).slice(0,140))+'</div>';}).join('');}
+async function _consTraer(){if(!_supa||_vivo.demo)return;try{var r=await _supa.from('eventos').select('id,mensaje,created_at').eq('estado','consumo').order('created_at',{ascending:false}).limit(12);
+ (r.data||[]).reverse().forEach(function(e){if(_cons.vistos[e.id])return;_cons.vistos[e.id]=1;try{_consIngerir(JSON.parse(e.mensaje));}catch(x){}});
+ var a=await _supa.from('eventos').select('etapa,mensaje,created_at').eq('estado','alerta').order('created_at',{ascending:false}).limit(3);_alertas(a.data||[]);_consRender();}catch(x){}}
+function _consDemo(){_cons={ag:{},vistos:{}};var ag=[['k1','coder-frontend','C-055',2.1e6],['o1','verificador','C-054',0.9e6],['m1','coder-backend','C-056',1.4e6]];
+ ag.forEach(function(x){_cons.ag[x[0]]={agente:x[1],orden:x[2],tokens:x[3],t:Date.now(),hist:[[Date.now()-60000,x[3]*.9],[Date.now(),x[3]]]};});_consRender();
+ clearInterval(_cons.dT);_cons.dT=setInterval(function(){if(!_vivo.demo){clearInterval(_cons.dT);return;}var now=Date.now();Object.keys(_cons.ag).forEach(function(k,i){var a=_cons.ag[k];var inc=(i===0&&Math.floor(now/15000)%3===0)?120000:20000+Math.random()*40000;a.tokens+=inc;a.t=now;a.hist.push([now,a.tokens]);a.hist=a.hist.filter(function(h){return now-h[0]<60000;});});_consRender();},2000);
+ _alertas([{etapa:'Revisor · C-054',mensaje:'Posible loop: repitió 5 veces en 10 min → pnpm test -- armar',created_at:new Date().toISOString()}]);}
 function _decList(){return _decDemo?_DEC_DEMO:_dec.pend;}
 function _decPick(i,j){var d=_decList()[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
 function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();delete _decNota[d.proy+'/'+d.id];renderDec();}}
@@ -1315,7 +1349,7 @@ setInterval(function(){try{fetchDec();}catch(e){}},30000);
 
 async function fetchEvs(){
  if(!_supa)return;var el=document.getElementById('evlist');if(!el)return;
- var r=await _supa.from('eventos').select('*').not('estado','in','(codigo,metrica)').order('created_at',{ascending:false}).limit(12);
+ var r=await _supa.from('eventos').select('*').not('estado','in','(codigo,metrica,consumo)').order('created_at',{ascending:false}).limit(12);
  if(r.error){el.innerHTML='<div class="inc-empty">El cable todavía no está conectado (falta la tabla <b>eventos</b>). Corré <b>cable/eventos.sql</b> en Supabase y recargá.</div>';return;}
  var evs=r.data||[];_evs=evs;renderIncs();try{renderShaiFeed();}catch(e){}
  try{_shaiAutoReporte();}catch(e){}
