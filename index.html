@@ -399,6 +399,32 @@ body{background:#080a0b}
 .sala-cinta .nuevo{animation:salaFlash 1.6s}
 @keyframes salaFlash{0%{background:rgba(53,210,154,.25)}100%{background:transparent}}
 @media (max-width:1000px){.sala-grid{grid-template-columns:1fr}.sala-code{grid-row:auto}.sala-cinta div{grid-template-columns:44px 120px 1fr}.sala-cinta div span:nth-child(3){display:none}}
+.term{position:relative;background:#000;border:1px solid #0d1a16;border-radius:18px;height:calc(100vh - 170px);min-height:560px;overflow:hidden}
+.term:fullscreen{border-radius:0;height:100vh}
+.tc{position:absolute;width:22px;height:22px;border:0 solid #1f4a3d}
+.term-hud{position:absolute;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:#3d6a5c;z-index:2;text-transform:uppercase}
+.term-hud.tl{left:56px;top:40px}.term-hud.tl .quien{margin-top:10px;color:#35D29A;font-size:13.5px;letter-spacing:.06em;text-transform:none}
+.term-hud.tr{right:56px;top:40px;text-align:right;line-height:2}.term-hud.tr b{color:#9fe9c9;font-weight:400}
+.term-hud.bl{left:56px;bottom:40px;right:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.term-hud.bl b{color:#9fe9c9;font-weight:400}
+.term .vivo-code{position:absolute;left:40px;right:400px;top:120px;bottom:90px;overflow-y:auto;padding:0;font-size:19px;line-height:1.8;scrollbar-width:none;mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 100%)}
+.term .vivo-code::-webkit-scrollbar{display:none}
+.term .vivo-ln{white-space:pre;word-break:normal;background:none!important}
+.term .vivo-ln .n{flex:0 0 56px;color:#1c3029}
+.term .vivo-ln .s{display:none}
+.term .vivo-ln .c{color:#EEFFFF;text-shadow:0 0 12px rgba(130,170,255,.12)}
+.term .vivo-ln.del .c{color:#ff5370;opacity:.45;text-decoration:line-through}
+.term .vivo-ln.sep .c{color:#35D29A;opacity:.55;font-size:13px;letter-spacing:.08em}
+.term .vivo-car{width:11px;height:24px;vertical-align:-5px;background:#35D29A;box-shadow:0 0 18px #35D29A}
+.term .tk-k{color:#C792EA}.term .tk-s{color:#C3E88D}.term .tk-n{color:#F78C6C}.term .tk-c{color:#546E7A;font-style:italic}.term .tk-f{color:#82AAFF}.term .tk-t{color:#F07178}.term .tk-p{color:#89DDFF}
+.term-shai{position:absolute;right:40px;bottom:40px;width:330px;border:1px solid #13271f;border-radius:14px;background:rgba(4,10,8,.92);padding:14px 16px;z-index:3}
+.sh-h{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:#3d6a5c}
+.sh-h canvas{width:26px;height:26px}.sh-est{margin-left:auto;color:#35D29A;letter-spacing:.06em}
+.sh-r{font-size:13.5px;line-height:1.5;color:#d9e6e1;margin-top:8px}
+.term-shai input{flex:1;min-width:0;background:#020605;border:1px solid #13271f;border-radius:9px;color:#EAEEEC;padding:8px 10px;font-family:inherit;font-size:13px}
+.sh-mic{width:36px;height:36px;border-radius:18px;border:0;background:#35D29A;cursor:pointer}.sh-stop{width:36px;height:36px;border-radius:18px;border:1px solid #13271f;background:transparent;color:#5d7a70;cursor:pointer}
+.term .shai-chips span{border-color:#13271f;color:#9fb8ae}
+.term-scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 3px),radial-gradient(ellipse at 40% 45%,transparent 55%,rgba(0,0,0,.6));pointer-events:none;z-index:1}
+@media (max-width:900px){.term{height:auto;min-height:0;display:flex;flex-direction:column;padding:22px 16px}.term-hud,.term .vivo-code,.term-shai{position:static}.term .vivo-code{height:60vh;font-size:13.5px;margin:14px 0}.term-hud.tr{text-align:left}.term-shai{width:auto}.term-hud.bl{white-space:normal}}
 </style>
 </head>
 <body>
@@ -471,25 +497,21 @@ body{background:#080a0b}
     </section>
 
     <section class="view" id="view-envivo">
-      <div class="phead"><div><h1>En vivo</h1><p>La sala de control: lo que la fábrica está haciendo, en el momento. <button class="mbtn-gh" style="margin-left:8px;padding:6px 14px;font-size:13px" onclick="_vivoEjemplo()" id="vivo_ej_btn">Ver un ejemplo</button></p></div><div class="when"><div class="d" id="vivo_estado">—</div><div class="t"><span class="dot">en vivo</span></div></div></div>
-      <div class="sala-kpis" id="sala_kpis"></div>
-      <div class="sala-grid">
-        <div class="vivo-ed sala-code">
-          <div class="vivo-top"><span class="vivo-luz" id="vivo_luz"></span><span id="vivo_quien" style="font-weight:600">—</span><span id="vivo_arch" class="vivo-arch">—</span><span id="vivo_cuenta" class="vivo-cuenta"></span></div>
-          <div class="vivo-body"><div class="vivo-files" id="vivo_files"></div><div class="vivo-code" id="vivo_code"></div></div>
+      <div class="phead"><div><h1>En vivo</h1><p>El código que la fábrica está escribiendo, en el momento. <button class="mbtn-gh" style="margin-left:8px;padding:6px 14px;font-size:13px" onclick="_vivoEjemplo()" id="vivo_ej_btn">Ver un ejemplo</button> <button class="mbtn-gh" style="margin-left:4px;padding:6px 14px;font-size:13px" onclick="_vivoGrande()">Pantalla completa</button></p></div><div class="when"><div class="d" id="vivo_estado">—</div><div class="t"><span class="dot">en vivo</span></div></div></div>
+      <div class="term" id="vivo_term">
+        <i class="tc" style="left:18px;top:18px;border-width:1px 0 0 1px"></i><i class="tc" style="right:18px;top:18px;border-width:1px 1px 0 0"></i><i class="tc" style="left:18px;bottom:18px;border-width:0 0 1px 1px"></i><i class="tc" style="right:18px;bottom:18px;border-width:0 1px 1px 0"></i>
+        <div class="term-hud tl"><div id="hud_proy">CRONOS</div><div class="quien"><span class="vivo-luz" id="vivo_luz"></span> <span id="vivo_quien">—</span> · <span id="vivo_arch">—</span></div></div>
+        <div class="term-hud tr" id="sala_kpis"></div>
+        <div class="vivo-code" id="vivo_code"></div>
+        <div class="term-hud bl" id="sala_cinta"></div>
+        <div class="term-shai">
+          <div class="sh-h"><canvas id="shai_v_orb"></canvas><span>SHAI</span><span id="shai_v_est" class="sh-est">preguntame</span><span id="vivo_cuenta" style="display:none"></span></div>
+          <div id="shai_v_resp" class="sh-r">Preguntame cómo viene la fábrica. Te contesto en voz alta.</div>
+          <div class="shai-chips"><span onclick="_shaiV('¿Cómo viene?')">¿Cómo viene?</span><span onclick="_shaiV('¿Qué está haciendo?')">¿Qué hace?</span><span onclick="_shaiV('¿Qué me falta decidir?')">¿Qué decido?</span><span onclick="_shaiV('¿Hay algo frenado?')">¿Frenos?</span></div>
+          <div style="display:flex;gap:6px;margin-top:8px"><input id="shai_v_in" placeholder="Preguntale algo…" onkeydown="if(event.key==='Enter'){_shaiV(this.value);this.value='';}"><button onclick="_shaiMic()" title="Hablar" class="sh-mic">🎙</button><button onclick="_shaiCallar()" title="Callar" class="sh-stop">■</button></div>
         </div>
-        <div class="sala-der">
-        <div class="sala-card shai-caja">
-          <div class="sala-h">SHAI <span class="sala-hv" id="shai_v_est">preguntame</span></div>
-          <div style="display:flex;gap:12px;align-items:center"><canvas id="shai_v_orb" style="width:64px;height:64px;flex:0 0 64px"></canvas><div id="shai_v_resp" style="font-size:13.5px;line-height:1.45;color:#EAEEEC">Preguntame cómo viene la fábrica. Te contesto en voz alta.</div></div>
-          <div class="shai-chips"><span onclick="_shaiV('¿Cómo viene?')">¿Cómo viene?</span><span onclick="_shaiV('¿Qué está haciendo?')">¿Qué hace ahora?</span><span onclick="_shaiV('¿Qué me falta decidir?')">¿Qué decido?</span><span onclick="_shaiV('¿Hay algo frenado?')">¿Frenos?</span></div>
-          <div style="display:flex;gap:8px;margin-top:8px"><input id="shai_v_in" placeholder="Escribí o tocá el micrófono" onkeydown="if(event.key==='Enter'){_shaiV(this.value);this.value='';}" style="flex:1;min-width:0;background:#0c0f10;border:1px solid var(--line);border-radius:10px;color:#EAEEEC;padding:9px 12px;font-family:inherit;font-size:13.5px"><button id="shai_v_mic" onclick="_shaiMic()" title="Hablar" style="width:40px;height:40px;border-radius:20px;border:0;background:var(--esm);color:#06231a;cursor:pointer;font-size:16px">🎙</button><button onclick="_shaiCallar()" title="Callar" style="width:40px;height:40px;border-radius:20px;border:1px solid var(--line);background:transparent;color:#9AA19E;cursor:pointer">■</button></div>
-        </div>
-        <div class="sala-card sala-red"><div class="sala-h">RED DE AGENTES <span id="sala_activos" class="sala-hv"></span></div><canvas id="sala_red"></canvas></div>
-        <div class="sala-card sala-lpm"><div class="sala-h">LÍNEAS POR MINUTO · 30 MIN <span id="sala_lpm_v" class="sala-hv"></span></div><canvas id="sala_lpm"></canvas></div>
-        </div>
+        <div class="term-scan"></div>
       </div>
-      <div class="sala-card" style="margin-top:14px"><div class="sala-h">CINTA DE LA FÁBRICA <span class="sala-hv">últimos avisos</span></div><div id="sala_cinta" class="sala-cinta"></div></div>
     </section>
 
     <section class="view" id="view-fabrica">
@@ -1058,7 +1080,7 @@ function _vivoColor(line){
   else if(m[4])out+='<span class="tk-t">'+_esc(m[4])+'</span>';
   else if(m[5])out+='<span class="tk-f">'+_esc(m[5])+'</span>';
   else if(m[6])out+=_VIVO_KW.test(m[6])?'<span class="tk-k">'+_esc(m[6])+'</span>':_esc(m[6]);
-  else out+=_esc(m[7]);
+  else out+=/[{}()\[\];,.=<>+\-*\/!&|?:]/.test(m[7])?'<span class="tk-p">'+_esc(m[7])+'</span>':_esc(m[7]);
  }return out;}
 function _vivoFiles(){var F=document.getElementById('vivo_files');if(!F)return;F.innerHTML=_vivo.files.slice(0,30).map(function(f,i){return '<div class="'+(_vivo.actual&&_vivo.actual.archivo===f?'on':'')+'" title="'+_esc(f)+'">'+_esc(f.split('/').pop())+'</div>';}).join('')||'<div>—</div>';}
 function _vivoHead(c,on){
@@ -1170,11 +1192,9 @@ function _salaDibujar(){
 }
 function _salaKpis(){var K=document.getElementById('sala_kpis');if(!K)return;var k=_sala.kpi;
  var it=[['BLOQUE',k.bloque||'—',''],['ÓRDENES EN VERDE',k.verde==null?'—':k.verde,'ok'],['EN ROJO',k.rojo==null?'—':k.rojo,k.rojo?'mal':''],['TE ESPERAN',k.esp==null?'—':k.esp,k.esp?'esp':''],['LÍNEAS HOY',_vivo.n||0,'ok'],['ÚLTIMO AVISO',k.ult?_evAgo(k.ult):'—','']];
- K.innerHTML=it.map(function(a){return '<div class="sala-kpi"><div class="l">'+a[0]+'</div><div class="v '+a[2]+'"'+(a[0]==='BLOQUE'?' style="font-size:17px;line-height:1.3"':'')+'>'+_esc(String(a[1]))+'</div></div>';}).join('');}
+ K.innerHTML=it.slice(1).map(function(a){return _esc(a[0])+' <b>'+_esc(String(a[1]))+'</b>';}).join('<br>');var hp=document.getElementById('hud_proy');if(hp)hp.textContent='CRONOS · '+(k.bloque||'fábrica');}
 function _salaCinta(){var E=document.getElementById('sala_cinta');if(!E)return;
- E.innerHTML=_sala.evs.slice(0,30).map(function(e){var col=e.estado==='error'?'var(--rojo)':e.estado==='esperando_ok'?'var(--amber)':(e.estado==='terminado'||e.estado==='aprobado')?'var(--esm)':'#9AA19E';
-  var h=new Date(e.created_at);var hh=('0'+h.getHours()).slice(-2)+':'+('0'+h.getMinutes()).slice(-2);
-  return '<div class="'+(e._nuevo?'nuevo':'')+'"><span style="color:#55605c">'+hh+'</span><span style="color:#EAEEEC">'+_esc(e.etapa)+'</span><span style="color:'+col+'">'+_esc(({error:'FRENO',esperando_ok:'TU OK',terminado:'VERDE',aprobado:'OK',trabajando:'TRABAJA'})[e.estado]||String(e.estado).toUpperCase())+'</span><span style="color:#9AA19E">'+_esc(e.mensaje)+'</span></div>';}).join('')||'<div><span></span><span>—</span></div>';
+ E.innerHTML=_sala.evs.slice(0,4).map(function(e){var h=new Date(e.created_at);return ('0'+h.getHours()).slice(-2)+':'+('0'+h.getMinutes()).slice(-2)+' '+_esc(String(e.etapa).split('·')[0].trim())+' <b>'+_esc(String(e.mensaje).slice(0,46))+'</b>';}).join('&nbsp;&nbsp;/&nbsp;&nbsp;')||'esperando avisos…';
  _sala.evs.forEach(function(e){e._nuevo=false;});}
 function _salaIngerir(lista,pri){lista.slice().reverse().forEach(function(e){if(_sala.vistosEv[e.id])return;_sala.vistosEv[e.id]=1;e._nuevo=!pri;_sala.evs.unshift(e);if(!pri)_salaPulso(e.etapa,.8);});_sala.evs=_sala.evs.slice(0,60);
  var hoy=_sala.evs.filter(function(e){return Date.now()-new Date(e.created_at).getTime()<864e5;});
@@ -1214,6 +1234,7 @@ function _shaiMic(){var SR=window.SpeechRecognition||window.webkitSpeechRecognit
 function _shaiOrb(){var C=_salaCanvas('shai_v_orb');if(!C||!C.w)return;var x=C.x,w=C.w,h=C.h,cx=w/2,cy=h/2,t=Date.now()/1000,amp=_shaiHabla?1:0;x.clearRect(0,0,w,h);
  for(var i=0;i<70;i++){var a=i/70*Math.PI*2+t*.4,rr=22+Math.sin(i*2.1+t*(3+amp*6))*(2+amp*5);x.fillStyle='rgba(94,235,174,'+(.35+.4*Math.sin(i+t*4))+')';x.fillRect(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,1.6,1.6);}
  var g=x.createRadialGradient(cx,cy,0,cx,cy,16+amp*4);g.addColorStop(0,'rgba(234,255,245,.95)');g.addColorStop(.4,'rgba(94,235,174,.6)');g.addColorStop(1,'rgba(94,235,174,0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,18+amp*4,0,7);x.fill();}
+function _vivoGrande(){var t=document.getElementById('vivo_term');try{if(document.fullscreenElement)document.exitFullscreen();else t.requestFullscreen();}catch(x){}}
 function _decList(){return _decDemo?_DEC_DEMO:_dec.pend;}
 function _decPick(i,j){var d=_decList()[i],o=d.opciones[j];_decSel[d.proy+'/'+d.id]=o.k;renderDec();}
 function _decOtra(i){var d=_decList()[i];var t=prompt('¿Qué querés en vez de las opciones? (podés dictar)');if(t&&t.trim()){_decSel[d.proy+'/'+d.id]='OTRA:'+t.trim();delete _decNota[d.proy+'/'+d.id];renderDec();}}
